@@ -9,11 +9,20 @@ import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.concepts.logging.LogWrite
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.allExtended
+import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
+import de.fraunhofer.aisec.cpg.query.or
 
+/**
+ * This query checks that before each relevant activity, there is a logging statement. The logging
+ * statement must be triggered based on the configuration of the logger (i.e., the log level has to
+ * match).
+ */
 context(translationResult: TranslationResult)
 fun relevantActivityHasLogging(
     relevantActivitiesSpecifier: ((Node) -> Boolean)
@@ -29,6 +38,13 @@ fun relevantActivityHasLogging(
     }
 }
 
+/**
+ * This query checks that before each relevant activity, there is a logging statement. The logging
+ * statement must be triggered based on the configuration of the logger (i.e., the log level has to
+ * match).
+ *
+ * In addition, it checks that the log message is meaningful for the activity.
+ */
 context(translationResult: TranslationResult)
 fun relevantActivityHasLoggingWithMeaningfulMessage(
     relevantActivitiesSpecifier: ((Node) -> Boolean)
@@ -48,20 +64,65 @@ fun relevantActivityHasLoggingWithMeaningfulMessage(
     }
 }
 
+/**
+ * Checks whether [this] [LogWrite] would actually be executed based on the configured log level for
+ * the underlying logger. The information has to be set beforehand in the [Log] node related to
+ * [this].
+ */
 val LogWrite.isLevelEnabled: Boolean
     get() {
         // TODO: Implement proper log level threshold checking. We need to know what is configured
-        // for the respective logger.
-        //   There are several ways to achieve this, e.g., by looking at the configuration files or
-        // by tracking
-        //   logger initialization in the code. We should probably add a field to the Concept and
-        // add a check like:
-        //   return this.logLevel >= this.concept.logLevelThreshold
+        //   for the respective logger.There are several ways to achieve this, e.g., by looking at
+        //   the configuration files or by tracking logger initialization in the code. We should
+        //   probably add a field to the Concept and add a check like:
+        // return this.logLevel >= this.concept.logLevelThreshold
         return true
     }
 
+/**
+ * Checks if the message constructed by [arguments] is meaningful for the [relevantActivity]. I.e.,
+ * it should reflect which activity was performed.
+ */
 fun messageMatchesActivity(arguments: List<Node>, relevantActivity: Node): Boolean {
     // TODO: Maybe use an AI agent to decide if the message constructed by the arguments is
     // meaningful for the activity.
     return true
 }
+
+/** This query checks that each [LogWrite] contains a timestamp. */
+context(translationResult: TranslationResult)
+fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
+    return translationResult.allExtended<LogWrite> { logWrite ->
+        // TODO: Add a list of fields to the Log concept which tells us what information is included
+        //   by each log entry. Typically, this is something like a timestamp, a logger name
+        val timestampField =
+            setOf<Node>() // logWrite.concept.logFields.filter{ it is LogTimestamp }
+        val argumentHasTimestamp =
+            logWrite.logArguments.map {
+                dataFlow(
+                    startNode = it,
+                    direction = Backward(GraphToFollow.DFG),
+                    type = Must,
+                    scope = Interprocedural(),
+                    predicate = { node ->
+                        node is CallExpression &&
+                            "time" in
+                                node.name
+                                    .localName /*TODO: replace with operation like node is GetCurrentTime */
+                    },
+                )
+            }
+        QueryTree<Boolean>(
+            value = timestampField.isNotEmpty(),
+            children = listOf(QueryTree(timestampField, operator = GenericQueryOperators.EVALUATE)),
+            operator = GenericQueryOperators.EVALUATE,
+        ) or
+            QueryTree<Boolean>(
+                value = argumentHasTimestamp.any { it.value },
+                children = argumentHasTimestamp,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+    }
+}
+
+// TODO: Check the "initiator" (e.g. user) and the content type that was changed in the output.
