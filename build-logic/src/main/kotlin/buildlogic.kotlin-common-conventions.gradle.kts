@@ -64,8 +64,7 @@ java {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    compilerOptions {
-        freeCompilerArgs = listOf("-Xcontext-receivers")
-    }
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xcontext-parameters"))
 }
