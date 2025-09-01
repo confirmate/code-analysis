@@ -4,12 +4,15 @@
 package de.fraunhofer.aisec.confirmate.queries
 
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
+import de.fraunhofer.aisec.cpg.assumptions.assume
 import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.concepts.Concept
+import de.fraunhofer.aisec.cpg.graph.concepts.Operation
 import de.fraunhofer.aisec.cpg.graph.concepts.logging.LogWrite
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
@@ -104,12 +107,7 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
                     direction = Backward(GraphToFollow.DFG),
                     type = Must,
                     scope = Interprocedural(),
-                    predicate = { node ->
-                        node is CallExpression &&
-                            "time" in
-                                node.name
-                                    .localName /*TODO: replace with operation like node is GetCurrentTime */
-                    },
+                    predicate = { node -> node is GetCurrentTime },
                 )
             }
         QueryTree<Boolean>(
@@ -125,4 +123,46 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
     }
 }
 
-// TODO: Check the "initiator" (e.g. user) and the content type that was changed in the output.
+// TODO: Check the content type that was changed in the output.
+
+/**
+ * This query checks that each [LogWrite] an argument which represents the initiator of the action.
+ * We are currently supporting [User] as initiator.
+ */
+context(translationResult: TranslationResult)
+fun logEntriesContainInitiator(): QueryTree<Boolean> {
+    return translationResult.allExtended<LogWrite> { logWrite ->
+        val argumentContainsInitiator =
+            logWrite.logArguments.map {
+                dataFlow(
+                    startNode = it,
+                    direction = Backward(GraphToFollow.DFG),
+                    type = Must,
+                    scope = Interprocedural(),
+                    predicate = { node -> node is User },
+                )
+            }
+        QueryTree(
+                value = argumentContainsInitiator.any { it.value },
+                children = argumentContainsInitiator,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+            .assume(
+                AssumptionType.DataFlowAssumption,
+                """
+                    We assume that the initiator is always logged via the same argument, i.e., the logging routine does not hold the initiator in different arguments on different paths reaching it.
+                    
+                    To validate this assumption, we need to check if different paths can contain the initiator and if it is enforced that at least one log argument always holds the initiator of the operation.
+                    Note that this is only necessary if the query fails."""
+                    .trimIndent(),
+            )
+    }
+}
+
+// TODO: Remove these example concepts once we have real ones in the CPG.
+/** The [underlyingNode] is suitable to identify/represent a user. */
+class User(underlyingNode: Node?) : Concept(underlyingNode = underlyingNode)
+
+/** The [underlyingNode] gets the current time of the system. */
+class GetCurrentTime(concept: Concept, underlyingNode: Node?) :
+    Operation(concept = concept, underlyingNode = underlyingNode)
