@@ -185,12 +185,12 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
                     predicate = { node -> node is GetCurrentTime },
                 )
             }
-        QueryTree<Boolean>(
+        QueryTree(
             value = timestampField.isNotEmpty(),
             children = listOf(QueryTree(timestampField, operator = GenericQueryOperators.EVALUATE)),
             operator = GenericQueryOperators.EVALUATE,
         ) or
-            QueryTree<Boolean>(
+            QueryTree(
                 value = argumentHasTimestamp.any { it.value },
                 children = argumentHasTimestamp,
                 operator = GenericQueryOperators.EVALUATE,
