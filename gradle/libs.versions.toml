@@ -2,13 +2,26 @@
 # https://docs.gradle.org/current/userguide/platforms.html#sub::toml-dependencies-format
 
 [versions]
-kotlin-gradle-plugin = "2.2.0"
+kotlin = "2.2.0-RC3"
+kotlinx-json = "1.8.0"
 cpg = "10.8.2"
 spotless = "7.0.4"
 
 [libraries]
-kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin-gradle-plugin" }
+kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 spotless-gradle = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
+kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin"}  # this is only needed for the testFixtures in cpg-core, everywhere else kotlin("test") is used
+kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
+
+apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.17.0"}
+
+jackson = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version = "2.18.0"}
+
+kover-gradle = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version = "0.9.0" }
+dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" } # the dokka plugin is slightly behind the main Kotlin release cycle
+
 
 cpg-core = { module = "de.fraunhofer.aisec:cpg-core", version.ref = "cpg" }
 cpg-neo4j = { module = "de.fraunhofer.aisec:cpg-neo4j", version.ref = "cpg" }
@@ -50,3 +63,9 @@ cpg = [
     "codyze-console",
     "cpg-concepts"
 ]
+
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
+dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

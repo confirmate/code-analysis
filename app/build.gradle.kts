@@ -4,15 +4,63 @@
  * This project uses @Incubating APIs which are subject to change.
  */
 
-plugins { id("buildlogic.kotlin-application-conventions") }
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    id("buildlogic.kotlin-application-conventions")
+
+    // generator for OpenAPI specs
+    id("org.openapi.generator") version "7.15.0"
+}
 
 dependencies {
     api(libs.eclipse.cdt.core)
     api(libs.bundles.cpg) { isChanging = true }
     api(libs.jep)
+
+    // depend on executing the build.gradle of the generated openapi-projects
+    implementation(project(":orchestrator"))
+    implementation(project(":evidence"))
 }
 
 application {
     // Define the main class for the application.
     mainClass = "de.fraunhofer.aisec.confirmate.AppKt"
+}
+
+// generates an openapi-project from the `orchestrator.yaml` specification in the resources
+// directory
+tasks.register<GenerateTask>("generateOrchestrator") {
+    inputSpec.set("$rootDir/app/src/main/resources/orchestrator.yaml")
+    outputDir.set(rootDir.resolve("orchestrator").toURI().toString())
+    generatorName.set("kotlin")
+    packageName.set("de.fraunhofer.aisec.confirmate.generated.orchestrator")
+    apiPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator.api")
+    modelPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator.model")
+    invokerPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator")
+    library.set("multiplatform")
+    configOptions.set(mapOf("serializationLibrary" to "jackson"))
+    additionalProperties.put("dateLibrary", "kotlinx-datetime")
+    validateSpec.set(false)
+}
+
+// generates an openapi-project from the `evidence.yaml` specification in the resources directory
+tasks.register<GenerateTask>("generateEvidence") {
+    inputSpec.set("$rootDir/app/src/main/resources/evidence.yaml")
+    outputDir.set(rootDir.resolve("evidence").toURI().toString())
+    generatorName.set("kotlin")
+    packageName.set("de.fraunhofer.aisec.confirmate.generated.evidence")
+    apiPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence.api")
+    modelPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence.model")
+    invokerPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence")
+    // validateSpec.set(false)
+    library.set("multiplatform")
+    configOptions.set(mapOf("serializationLibrary" to "jackson"))
+    additionalProperties.put("dateLibrary", "kotlinx-datetime")
+}
+
+// task combining the two generation tasks above
+tasks.register("generateAll") {
+    dependsOn(tasks.named("generateOrchestrator"))
+    dependsOn(tasks.named("generateEvidence"))
 }
