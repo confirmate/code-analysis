@@ -4,7 +4,7 @@
 package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
-import de.fraunhofer.aisec.confirmate.generated.orchestrator.model.AssessmentResult
+import io.clouditor.model.AssessmentResult
 
 fun AnalysisResult.toAssessmentResult(): AssessmentResult {
     return AssessmentResult(

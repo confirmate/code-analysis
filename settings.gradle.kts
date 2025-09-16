@@ -13,9 +13,3 @@ plugins {
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include("app", "queries")
-
-include(":orchestrator")
-//project(":generator_orchestrator").projectDir = rootDir.resolve("generated/generator_orchestrator")
-
-include(":evidence")
-//project(":evidence").projectDir = rootDir.resolve("build/evidence")

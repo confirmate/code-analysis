@@ -4,6 +4,7 @@
  * This project uses @Incubating APIs which are subject to change.
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
 
 plugins {
@@ -17,10 +18,6 @@ dependencies {
     api(libs.eclipse.cdt.core)
     api(libs.bundles.cpg) { isChanging = true }
     api(libs.jep)
-
-    // depend on executing the build.gradle of the generated openapi-projects
-    implementation(project(":orchestrator"))
-    implementation(project(":evidence"))
 }
 
 application {
@@ -28,39 +25,33 @@ application {
     mainClass = "de.fraunhofer.aisec.confirmate.AppKt"
 }
 
+
+val apiDescription = "$rootDir/app/src/main/resources/"
+val apiRootName = "io.clouditor"
+
 // generates an openapi-project from the `orchestrator.yaml` specification in the resources
 // directory
-tasks.register<GenerateTask>("generateOrchestrator") {
-    inputSpec.set("$rootDir/app/src/main/resources/orchestrator.yaml")
-    outputDir.set(rootDir.resolve("orchestrator").toURI().toString())
+tasks.register<GenerateTask>("generateApi") {
     generatorName.set("kotlin")
-    packageName.set("de.fraunhofer.aisec.confirmate.generated.orchestrator")
-    apiPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator.api")
-    modelPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator.model")
-    invokerPackage.set("de.fraunhofer.aisec.confirmate.generated.orchestrator")
-    library.set("multiplatform")
-    configOptions.set(mapOf("serializationLibrary" to "jackson"))
-    additionalProperties.put("dateLibrary", "kotlinx-datetime")
+    inputSpecRootDirectorySkipMerge.set(false)
+    inputSpecRootDirectory.set(apiDescription)
+    outputDir.set("${project.projectDir}/build/generated-sources")
+    apiPackage.set("$apiRootName.api")
+    invokerPackage.set("$apiRootName.invoker")
+    modelPackage.set("$apiRootName.model")
+    library.set("jvm-ktor")
+    configOptions.set(mapOf(
+        //"dateLibrary" to "kotlinx-datetime",
+        //"serializationLibrary" to "kotlinx_serialization"
+        "serializationLibrary" to "jackson"
+    ))
     validateSpec.set(false)
 }
 
-// generates an openapi-project from the `evidence.yaml` specification in the resources directory
-tasks.register<GenerateTask>("generateEvidence") {
-    inputSpec.set("$rootDir/app/src/main/resources/evidence.yaml")
-    outputDir.set(rootDir.resolve("evidence").toURI().toString())
-    generatorName.set("kotlin")
-    packageName.set("de.fraunhofer.aisec.confirmate.generated.evidence")
-    apiPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence.api")
-    modelPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence.model")
-    invokerPackage.set("de.fraunhofer.aisec.confirmate.generated.evidence")
-    // validateSpec.set(false)
-    library.set("multiplatform")
-    configOptions.set(mapOf("serializationLibrary" to "jackson"))
-    additionalProperties.put("dateLibrary", "kotlinx-datetime")
+sourceSets.main {
+    kotlin.srcDirs("${project.projectDir}/build/generated-sources/src/main/kotlin")
 }
 
-// task combining the two generation tasks above
-tasks.register("generateAll") {
-    dependsOn(tasks.named("generateOrchestrator"))
-    dependsOn(tasks.named("generateEvidence"))
+tasks.withType<KotlinCompile>().configureEach {
+    dependsOn("generateApi")
 }
