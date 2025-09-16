@@ -25,8 +25,7 @@ application {
     mainClass = "de.fraunhofer.aisec.confirmate.AppKt"
 }
 
-
-val apiDescription = "$rootDir/app/src/main/resources/"
+val apiDescription = "$rootDir/app/src/main/resources/openapi"
 val apiRootName = "io.clouditor"
 
 // generates an openapi-project from the `orchestrator.yaml` specification in the resources
@@ -40,18 +39,16 @@ tasks.register<GenerateTask>("generateApi") {
     invokerPackage.set("$apiRootName.invoker")
     modelPackage.set("$apiRootName.model")
     library.set("jvm-ktor")
-    configOptions.set(mapOf(
-        //"dateLibrary" to "kotlinx-datetime",
-        //"serializationLibrary" to "kotlinx_serialization"
-        "serializationLibrary" to "jackson"
-    ))
+    configOptions.set(
+        mapOf(
+            // "dateLibrary" to "kotlinx-datetime",
+            // "serializationLibrary" to "kotlinx_serialization"
+            "serializationLibrary" to "jackson"
+        )
+    )
     validateSpec.set(false)
 }
 
-sourceSets.main {
-    kotlin.srcDirs("${project.projectDir}/build/generated-sources/src/main/kotlin")
-}
+sourceSets.main { kotlin.srcDirs("${project.projectDir}/build/generated-sources/src/main/kotlin") }
 
-tasks.withType<KotlinCompile>().configureEach {
-    dependsOn("generateApi")
-}
+tasks.withType<KotlinCompile>().configureEach { dependsOn("generateApi") }
