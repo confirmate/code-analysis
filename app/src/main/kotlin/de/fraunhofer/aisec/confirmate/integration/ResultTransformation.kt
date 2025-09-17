@@ -5,36 +5,57 @@ package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import io.clouditor.model.AssessmentResult
+import io.clouditor.model.Evidence
 import io.clouditor.model.MetricConfiguration
 import java.time.OffsetDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
+const val codyzeToolId = "Codyze"
+
 @OptIn(ExperimentalUuidApi::class)
-fun AnalysisResult.toAssessmentResult(): List<AssessmentResult> {
+fun AnalysisResult.toClouditorResults(): Pair<List<AssessmentResult>, List<Evidence>> {
+    val currentTimestamp = OffsetDateTime.now() // TODO: Should this be the timestamp when we started the analysis?
+
     val toeId = this.translationResult.id.toString()
-    return this.requirementsResults.map { (requirementId, result) ->
+
+    val evidences = mutableListOf<Evidence>()
+
+    val assessmentResults = this.requirementsResults.map { (requirementId, result) ->
+        evidences.add(
+            Evidence(
+                id = result.id.toString(),
+                timestamp = currentTimestamp,
+                cloudServiceId = null,
+                toolId = codyzeToolId,
+                raw = result.printNicely(),
+                resource = null,
+            )
+        )
+
         AssessmentResult(
             id = Uuid.random().toString(),
-            createdAt = OffsetDateTime.now(),
+            createdAt = currentTimestamp,
             metricId = requirementId,
-            metricConfiguration = MetricConfiguration(
-                operator = "==",
-                targetValue = true,
-                metricId = requirementId,
-                targetOfEvaluationId = toeId,
-                isDefault = true
-            ),
+            metricConfiguration =
+                MetricConfiguration(
+                    operator = "==",
+                    targetValue = true,
+                    metricId = requirementId,
+                    targetOfEvaluationId = toeId,
+                    isDefault = true,
+                ),
             compliant = result.value,
             evidenceId = result.id.toString(),
             resourceId = "TODO",
             resourceTypes = listOf(),
             complianceComment = result.printNicely(),
             targetOfEvaluationId = toeId,
-            toolId = "Codyze",
-            historyUpdatedAt = OffsetDateTime.now(),
+            toolId = codyzeToolId,
+            historyUpdatedAt = currentTimestamp,
             history = listOf(),
             complianceDetails = listOf(),
         )
     }
+    return assessmentResults to evidences
 }
