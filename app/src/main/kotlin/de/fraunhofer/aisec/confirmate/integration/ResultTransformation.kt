@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.codyze.AnalysisResult
 import io.clouditor.model.AssessmentResult
 import io.clouditor.model.Evidence
 import io.clouditor.model.MetricConfiguration
+import io.clouditor.model.Resource
 import java.time.OffsetDateTime
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
@@ -29,10 +30,11 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
                     Evidence(
                         id = result.id.toString(),
                         timestamp = currentTimestamp,
-                        targetOfEvaluationId = null,
+                        targetOfEvaluationId = toeId,
                         toolId = codyzeToolId,
                         // raw = result.printNicely(),
-                        resource = null,
+                        resource = Resource(),
+                        experimentalRelatedResourceIds = listOf("TODO"),
                     )
                 )
 
@@ -56,7 +58,8 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
                     targetOfEvaluationId = toeId,
                     toolId = codyzeToolId,
                     historyUpdatedAt = currentTimestamp,
-                    history = listOf(),
+                    history =
+                        listOf(io.clouditor.model.Record(result.id.toString(), currentTimestamp)),
                     complianceDetails = listOf(),
                 )
             }
