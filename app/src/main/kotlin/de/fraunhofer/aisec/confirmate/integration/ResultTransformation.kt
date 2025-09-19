@@ -29,9 +29,9 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
                     Evidence(
                         id = result.id.toString(),
                         timestamp = currentTimestamp,
-                        cloudServiceId = null,
+                        targetOfEvaluationId = null,
                         toolId = codyzeToolId,
-                        raw = result.printNicely(),
+                        // raw = result.printNicely(),
                         resource = null,
                     )
                 )
