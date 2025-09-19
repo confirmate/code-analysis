@@ -51,7 +51,7 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
                     compliant = result.value,
                     evidenceId = result.id.toString(),
                     resourceId = "TODO",
-                    resourceTypes = listOf(),
+                    resourceTypes = listOf("Code"),
                     complianceComment = result.printNicely(),
                     targetOfEvaluationId = toeId,
                     toolId = codyzeToolId,

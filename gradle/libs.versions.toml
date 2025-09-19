@@ -54,6 +54,9 @@ ktor-client-core = {module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = {module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-jackson = {module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
 ktor-serialization-jackson = {module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
+ktor-serialization-jacksonjvm = {module = "io.ktor:ktor-serialization-jackson-jvm", version.ref = "ktor" }
+ktor-serialization-kotlinx = {module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-auth = {module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 
 [bundles]
 cpg = [
@@ -80,7 +83,10 @@ ktor = [
     "ktor-client-core",
     "ktor-client-content-negotiation",
     "ktor-client-jackson",
-    "ktor-serialization-jackson"
+    "ktor-serialization-jackson",
+    "ktor-client-auth",
+    "ktor-serialization-jacksonjvm",
+    "ktor-serialization-kotlinx"
 ]
 
 jackson = [
