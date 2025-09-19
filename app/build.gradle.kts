@@ -18,6 +18,10 @@ dependencies {
     api(libs.eclipse.cdt.core)
     api(libs.bundles.cpg) { isChanging = true }
     api(libs.jep)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.jackson)
 }
 
 application {

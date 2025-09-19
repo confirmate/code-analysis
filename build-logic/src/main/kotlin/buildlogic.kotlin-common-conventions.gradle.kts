@@ -69,5 +69,5 @@ compileKotlin.compilerOptions {
 val libs = the<LibrariesForLibs>()  // necessary to be able to use the version catalog in buildSrc
 dependencies {
     implementation(libs.apache.commons.lang3)
-    implementation(libs.jackson)
+    implementation(libs.jackson.module)
 }
