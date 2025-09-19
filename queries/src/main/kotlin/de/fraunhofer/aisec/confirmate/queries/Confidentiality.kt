@@ -13,6 +13,8 @@ import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.allExtended
 import de.fraunhofer.aisec.cpg.query.alwaysComesFrom
+import de.fraunhofer.aisec.cpg.query.and
+import de.fraunhofer.aisec.cpg.query.mergeWithAll
 
 /**
  * This query checks whether each path leading to a persistent data sink encrypts the data before
@@ -31,24 +33,40 @@ fun dataEncryptedBeforePersisting(
             writtenData(it)
                 ?: return@allExtended QueryTree(
                     value = false,
-                    stringRepresentation = "Missing data written to sink",
+                    stringRepresentation = "Missing data written to a persistent location",
                     node = it,
                     operator = GenericQueryOperators.EVALUATE,
                 )
 
-        writtenData.alwaysComesFrom(scope = Interprocedural(), predicate = { it is Encrypt })
+        val relevantEncryptOperations = mutableListOf<Encrypt>()
+        val writtenDataIsEncrypted =
+            writtenData.alwaysComesFrom(
+                scope = Interprocedural(),
+                predicate = { enc ->
+                    if (enc is Encrypt) {
+                        relevantEncryptOperations.add(enc)
+                        true
+                    } else {
+                        false
+                    }
+                },
+            )
+
+        // The data must be encrypted and the encryption must be state of the art
+        writtenDataIsEncrypted and
+            relevantEncryptOperations.map { it.concept.conformsToStateOfTheArt() }.mergeWithAll()
     }
 }
 
 fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
-    if("AES" in (cipherName?.uppercase() ?: "")) {
+    if ("AES" in (cipherName?.uppercase() ?: "")) {
         return checkAES()
     }
 
     return QueryTree(
         value = false,
         stringRepresentation =
-                "Cipher ${this.cipherName} with key size ${this.keySize} is NOT considered state of the art",
+            "Cipher ${this.cipherName} with key size ${this.keySize} is NOT considered state of the art",
         node = this,
         operator = GenericQueryOperators.EVALUATE,
     )
