@@ -6,6 +6,7 @@ package de.fraunhofer.aisec.confirmate.queries
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Cipher
 import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Encrypt
 import de.fraunhofer.aisec.cpg.graph.concepts.file.WriteFile
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
@@ -37,4 +38,18 @@ fun dataEncryptedBeforePersisting(
 
         writtenData.alwaysComesFrom(scope = Interprocedural(), predicate = { it is Encrypt })
     }
+}
+
+fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
+    if("AES" in (cipherName?.uppercase() ?: "")) {
+        return checkAES()
+    }
+
+    return QueryTree(
+        value = false,
+        stringRepresentation =
+                "Cipher ${this.cipherName} with key size ${this.keySize} is NOT considered state of the art",
+        node = this,
+        operator = GenericQueryOperators.EVALUATE,
+    )
 }
