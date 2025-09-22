@@ -1,8 +1,10 @@
 /*
  * This file is part of the Confirmate project.
  */
-package de.fraunhofer.aisec.confirmate.queries
+package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
+import de.fraunhofer.aisec.confirmate.queries.catalogs.german.SymmetricCipher
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
@@ -28,7 +30,7 @@ import de.fraunhofer.aisec.cpg.query.or
  * how to extract the written data can be customized by providing the [isPersistentSink] and
  * [writtenData] functions, respectively.
  */
-context(translationResult: TranslationResult)
+context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun dataEncryptedBeforePersisting(
     isPersistentSink: (Node) -> Boolean = { it is WriteFile },
     writtenData: (Node) -> Node? = { (it as? WriteFile)?.what },
@@ -50,6 +52,7 @@ fun dataEncryptedBeforePersisting(
     }
 }
 
+context(cryptoCatalog: CryptoCatalog)
 fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
     val relevantEncryptOperations = mutableListOf<Encrypt>()
     val writtenDataIsEncrypted =
@@ -70,9 +73,10 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
         relevantEncryptOperations.map { it.concept.conformsToStateOfTheArt() }.mergeWithAll()
 }
 
+context(cryptoCatalog: CryptoCatalog)
 fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
-    if ("AES" in (cipherName?.uppercase() ?: "")) {
-        return checkAES()
+    if (this is SymmetricCipher) {
+        return cryptoCatalog.checkSymmetricEncryption()
     }
 
     return QueryTree(
@@ -90,7 +94,7 @@ fun dataInTransitEncrypted(): QueryTree<Boolean> {
     TODO()
 }
 
-context(translationResult: TranslationResult)
+context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun secureHttpRequests(): QueryTree<Boolean> =
     translationResult.allExtended<HttpRequest> {
         // Check if the request is sent over TLS. That's already a good starting point.
@@ -118,7 +122,7 @@ fun secureHttpRequests(): QueryTree<Boolean> =
         secureChannel or dataEncryptedBeforeRequest
     }
 
-context(translationResult: TranslationResult)
+context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun secureHttpResponses(): QueryTree<Boolean> =
     // We start with the HttpEndpointOperations as they represent the server-side handling of
     // requests
