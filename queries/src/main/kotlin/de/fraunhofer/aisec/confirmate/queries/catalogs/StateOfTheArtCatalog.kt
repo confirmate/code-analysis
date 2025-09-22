@@ -27,5 +27,11 @@ interface CryptoCatalog {
     context(cipher: Cipher)
     fun checkAsymmetricEncryption(): QueryTree<Boolean>
 
+    context(cipher: Cipher)
+    fun checkKeyExchange(): QueryTree<Boolean>
+
+    context(cipher: Cipher)
+    fun checkHashFunction(): QueryTree<Boolean>
+
     fun checkPQCEncryption(): QueryTree<Boolean>
 }

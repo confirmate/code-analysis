@@ -24,8 +24,6 @@ SOTA of certain regulations/standards/requirements/guidelines. The classes shoul
  * This class represents a symmetric cipher used for encryption and decryption of data. It extends
  * the [Cipher] class and includes additional properties specific to symmetric ciphers, such as the
  * mode of operation, tag size, IV size, and the initialization vector itself.
- *
- * TODO: Delete here, move to ontology or cpg-concepts.
  */
 class SymmetricCipher(underlyingNode: Node?) : Cipher(underlyingNode) {
     /** The modus of operation, e.g., "GCM", "CBC", "CCM", ... */
@@ -39,6 +37,23 @@ class SymmetricCipher(underlyingNode: Node?) : Cipher(underlyingNode) {
      * this to the encrypt operation??
      */
     var iv: Node? = null
+}
+
+/**
+ * This class represents a hybrid encryption and decryption scheme. These consist of a symmetric
+ * encryption scheme, a key exchange.
+ */
+class HybridCipher(underlyingNode: Node?) : Cipher(underlyingNode) {
+    var symmetricCipher: SymmetricCipher? = null
+
+    var keyExchange: Cipher? = null // TODO: Maybe we do not need this here.
+
+    var hashFunction: HashFunction? = null
+}
+
+class HashFunction(underlyingNode: Node?) : Concept(underlyingNode) {
+    var hashFunctionName: String? = null
+    var outputSize: Int? = null
 }
 
 class TlsHttpEndpoint(

@@ -3,6 +3,7 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.german
 
+import de.fraunhofer.aisec.confirmate.queries.HybridCipher
 import de.fraunhofer.aisec.confirmate.queries.RngGet
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.cpg.graph.Backward
@@ -16,6 +17,7 @@ import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.and
 import de.fraunhofer.aisec.cpg.query.dataFlow
+import de.fraunhofer.aisec.cpg.query.mergeWithAll
 import de.fraunhofer.aisec.cpg.query.mergeWithAny
 import kotlin.collections.contains
 
@@ -392,4 +394,162 @@ internal fun Cipher.checkRSA(): QueryTree<Boolean> {
                 operator = GenericQueryOperators.EVALUATE,
             )
     return isRSA and keysizeOk
+}
+
+context(catalog: GermanCatalog)
+internal fun Cipher.checkDLIES(): QueryTree<Boolean> {
+    if (this !is HybridCipher) {
+        return QueryTree(
+            value = false,
+            stringRepresentation = "The algorithm is not a hybrid cipher, so it cannot be DLIES",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    }
+
+    val isDLIES =
+        QueryTree(
+            value = this.cipherName == "DLIES",
+            stringRepresentation =
+                if (cipherName == "DLIES") "The algorithm is DLIES"
+                else "The algorithm is not DLIES",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+
+    val symmetricCipherOk =
+        this.symmetricCipher?.let { symmetricCipher ->
+            with(symmetricCipher) { catalog.checkSymmetricEncryption() }
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the symmetric cipher with the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    val hashFunctionOk =
+        this.hashFunction?.let { hashFunction ->
+            with(hashFunction) { catalog.checkHashFunction() }
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the hash function of the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    // One of the two things is redundant
+    val keyexchangeOk =
+        this.keyExchange?.let { keyExchange -> with(keyExchange) { catalog.checkKeyExchange() } }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the key exchange mechanism of the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    val keysizeOk =
+        this.keySize?.let {
+            it
+            QueryTree(
+                value = it >= 3000,
+                stringRepresentation =
+                    if (it >= 3000) "The keysize is bigger than 3000 bit"
+                    else "The keysize $it is smaller than the required 3000 bit",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation = "Could not identify the keysize",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    return listOf(isDLIES, keysizeOk, symmetricCipherOk, hashFunctionOk, keyexchangeOk)
+        .mergeWithAll()
+}
+
+context(catalog: GermanCatalog)
+internal fun Cipher.checkECIES(): QueryTree<Boolean> {
+    if (this !is HybridCipher) {
+        return QueryTree(
+            value = false,
+            stringRepresentation = "The algorithm is not a hybrid cipher, so it cannot be ECIES",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    }
+
+    val isECIES =
+        QueryTree(
+            value = this.cipherName == "ECIES",
+            stringRepresentation =
+                if (cipherName == "ECIES") "The algorithm is ECIES"
+                else "The algorithm is not ECIES",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+
+    val symmetricCipherOk =
+        this.symmetricCipher?.let { symmetricCipher ->
+            with(symmetricCipher) { catalog.checkSymmetricEncryption() }
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the symmetric cipher with the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    val hashFunctionOk =
+        this.hashFunction?.let { hashFunction ->
+            with(hashFunction) { catalog.checkHashFunction() }
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the hash function of the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    // One of the two things is redundant
+    val keyexchangeOk =
+        this.keyExchange?.let { keyExchange -> with(keyExchange) { catalog.checkKeyExchange() } }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation =
+                    "Could not identify the key exchange mechanism of the hybrid algorithm",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    val keysizeOk =
+        this.keySize?.let {
+            it
+            QueryTree(
+                value = it >= 250,
+                stringRepresentation =
+                    if (it >= 250) "The keysize is bigger than 250 bit"
+                    else "The keysize $it is smaller than the required 250 bit",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation = "Could not identify the keysize",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    return listOf(isECIES, keysizeOk, symmetricCipherOk, hashFunctionOk, keyexchangeOk)
+        .mergeWithAll()
 }
