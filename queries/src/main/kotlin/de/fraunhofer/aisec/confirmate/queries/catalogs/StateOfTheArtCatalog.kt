@@ -1,0 +1,29 @@
+/*
+ * This file is part of the Confirmate project.
+ */
+package de.fraunhofer.aisec.confirmate.queries.catalogs
+
+import de.fraunhofer.aisec.confirmate.queries.catalogs.german.SymmetricCipher
+import de.fraunhofer.aisec.cpg.query.QueryTree
+
+/**
+ * This is a placeholder class for existing requirements catalogs. These could be based on national
+ * agencies' recommendations or other entities defining their interpretation of the
+ * state-of-the-art. These catalogs can be used to bundle queries for a specific evaluation project.
+ */
+abstract class RequirementsCatalog
+
+/**
+ * If an instance of a [RequirementsCatalog] provides an interpretation of the state-of-the-art
+ * regarding cryptographic aspects, it should implement this interface to signal that it provides
+ * such an interpretation.
+ */
+interface CryptoCatalog {
+
+    context(cipher: SymmetricCipher)
+    fun checkSymmetricEncryption(): QueryTree<Boolean>
+
+    fun checkAsymmetricEncryption(): QueryTree<Boolean>
+
+    fun checkPQCEncryption(): QueryTree<Boolean>
+}
