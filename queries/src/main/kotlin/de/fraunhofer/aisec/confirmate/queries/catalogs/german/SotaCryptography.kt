@@ -10,9 +10,6 @@ import de.fraunhofer.aisec.cpg.graph.ContextSensitive
 import de.fraunhofer.aisec.cpg.graph.FieldSensitive
 import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
-import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.concepts.Concept
-import de.fraunhofer.aisec.cpg.graph.concepts.Operation
 import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Cipher
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.Must
@@ -368,24 +365,31 @@ internal fun SymmetricCipher.checkAesCTR(): QueryTree<Boolean> {
 // Checking asymmetric crypto
 
 internal fun Cipher.checkRSA(): QueryTree<Boolean> {
-    val isRSA = QueryTree(
-        value = this.cipherName == "RSA",
-        stringRepresentation = if(cipherName == "RSA") "The algorithm is RSA" else "The algorithm is not RSA",
-        node = this,
-        operator = GenericQueryOperators.EVALUATE
-    )
-    val keysizeOk = this.keySize?.let { it
+    val isRSA =
         QueryTree(
-            value = it >= 3000,
-            stringRepresentation = if(it >= 3000) "The keysize is bigger than 3000 bit" else "The keysize $it is smaller than the required 3000 bit",
-             node = this,
-            operator = GenericQueryOperators.EVALUATE
+            value = this.cipherName == "RSA",
+            stringRepresentation =
+                if (cipherName == "RSA") "The algorithm is RSA" else "The algorithm is not RSA",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    val keysizeOk =
+        this.keySize?.let {
+            it
+            QueryTree(
+                value = it >= 3000,
+                stringRepresentation =
+                    if (it >= 3000) "The keysize is bigger than 3000 bit"
+                    else "The keysize $it is smaller than the required 3000 bit",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
             )
-    } ?: QueryTree(
-        value = false,
-        stringRepresentation = "Could not identify the keysize",
-        node = this,
-        operator = GenericQueryOperators.EVALUATE,
-    )
+        }
+            ?: QueryTree(
+                value = false,
+                stringRepresentation = "Could not identify the keysize",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
     return isRSA and keysizeOk
 }

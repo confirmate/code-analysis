@@ -1,3 +1,6 @@
+/*
+ * This file is part of the Confirmate project.
+ */
 package de.fraunhofer.aisec.confirmate.queries
 
 import de.fraunhofer.aisec.cpg.graph.Node
@@ -46,8 +49,9 @@ class TlsHttpEndpoint(
     authentication: Authentication?,
     authorization: Authorization?,
     requestContext: RequestContext?,
-    ): HttpEndpoint(
-    underlyingNode = underlyingNode,
+) :
+    HttpEndpoint(
+        underlyingNode = underlyingNode,
         httpMethod = httpMethod,
         path = path,
         arguments = arguments,
@@ -60,14 +64,14 @@ class TlsHttpEndpoint(
 
 /**
  * This class represents a Random Number Generator (RNG) concept in the code property graph (CPG).
- * It extends the [Concept] class and is used to identify nodes in the CPG that are associated
- * with random number generation functionality.
+ * It extends the [Concept] class and is used to identify nodes in the CPG that are associated with
+ * random number generation functionality.
  */
 class RNG(underlyingNode: Node?) : Concept(underlyingNode)
 
 /**
- * This class represents an operation that retrieves random numbers from a random number generator (RNG).
- * It extends the [Operation] class and is associated with an [RNG] concept to indicate that it
- * performs a get operation on the RNG.
+ * This class represents an operation that retrieves random numbers from a random number generator
+ * (RNG). It extends the [Operation] class and is associated with an [RNG] concept to indicate that
+ * it performs a get operation on the RNG.
  */
 class RngGet(underlyingNode: Node?, val rng: RNG) : Operation(underlyingNode, rng)
