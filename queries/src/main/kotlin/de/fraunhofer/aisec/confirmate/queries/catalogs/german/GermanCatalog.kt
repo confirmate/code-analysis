@@ -3,8 +3,10 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.german
 
+import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.confirmate.queries.catalogs.RequirementsCatalog
+import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Cipher
 import de.fraunhofer.aisec.cpg.query.QueryTree
 
 class GermanCatalog : RequirementsCatalog(), CryptoCatalog {
@@ -13,8 +15,9 @@ class GermanCatalog : RequirementsCatalog(), CryptoCatalog {
         return cipher.checkAES()
     }
 
+    context(cipher: Cipher)
     override fun checkAsymmetricEncryption(): QueryTree<Boolean> {
-        TODO("Not yet implemented")
+        return cipher.checkRSA()
     }
 
     override fun checkPQCEncryption(): QueryTree<Boolean> {

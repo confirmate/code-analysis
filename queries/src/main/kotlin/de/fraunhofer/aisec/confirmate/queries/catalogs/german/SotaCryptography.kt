@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.german
 
+import de.fraunhofer.aisec.confirmate.queries.RngGet
+import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.ContextSensitive
 import de.fraunhofer.aisec.cpg.graph.FieldSensitive
@@ -15,6 +17,7 @@ import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Cipher
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
+import de.fraunhofer.aisec.cpg.query.and
 import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.mergeWithAny
 import kotlin.collections.contains
@@ -26,27 +29,6 @@ import kotlin.collections.contains
 
 // Symmetric encryption algorithms, their modus, and recommended key lengths. There are also
 // requirements on the IV, and interdependencies between accepted key lengths and modus.
-
-/**
- * This class represents a symmetric cipher used for encryption and decryption of data. It extends
- * the [Cipher] class and includes additional properties specific to symmetric ciphers, such as the
- * mode of operation, tag size, IV size, and the initialization vector itself.
- *
- * TODO: Delete here, move to ontology or cpg-concepts.
- */
-class SymmetricCipher(underlyingNode: Node?) : Cipher(underlyingNode) {
-    /** The modus of operation, e.g., "GCM", "CBC", "CCM", ... */
-    var modus: String? = null
-    /** The size of an authentication tag in bits, if present for the given [modus]. */
-    var tagSize: Int? = null
-    /** The size of the initialization vector (IV) in bits, if present for the given [modus]. */
-    var ivSize: Int? = null
-    /**
-     * The initialization vector (IV) itself, if present for the given [modus]. TODO: Maybe move
-     * this to the encrypt operation??
-     */
-    var iv: Node? = null
-}
 
 internal fun SymmetricCipher.checkAES(): QueryTree<Boolean> {
     return listOf(::checkAesCCM, ::checkAesGCM, ::checkAesGcmSiv, ::checkAesCBC, ::checkAesCTR)
@@ -223,10 +205,6 @@ internal fun SymmetricCipher.isRandomIv(): QueryTree<Boolean> {
     )
 }
 
-class RNG(underlyingNode: Node?) : Concept(underlyingNode)
-
-class RngGet(underlyingNode: Node?, val rng: RNG) : Operation(underlyingNode, rng)
-
 internal fun SymmetricCipher.checkAesCCM(): QueryTree<Boolean> {
     val algoCheck = this.isAES()
     val modusCheck = this.isModus("CCM")
@@ -385,4 +363,29 @@ internal fun SymmetricCipher.checkAesCTR(): QueryTree<Boolean> {
         node = this,
         operator = GenericQueryOperators.ALL,
     )
+}
+
+// Checking asymmetric crypto
+
+internal fun Cipher.checkRSA(): QueryTree<Boolean> {
+    val isRSA = QueryTree(
+        value = this.cipherName == "RSA",
+        stringRepresentation = if(cipherName == "RSA") "The algorithm is RSA" else "The algorithm is not RSA",
+        node = this,
+        operator = GenericQueryOperators.EVALUATE
+    )
+    val keysizeOk = this.keySize?.let { it
+        QueryTree(
+            value = it >= 3000,
+            stringRepresentation = if(it >= 3000) "The keysize is bigger than 3000 bit" else "The keysize $it is smaller than the required 3000 bit",
+             node = this,
+            operator = GenericQueryOperators.EVALUATE
+            )
+    } ?: QueryTree(
+        value = false,
+        stringRepresentation = "Could not identify the keysize",
+        node = this,
+        operator = GenericQueryOperators.EVALUATE,
+    )
+    return isRSA and keysizeOk
 }

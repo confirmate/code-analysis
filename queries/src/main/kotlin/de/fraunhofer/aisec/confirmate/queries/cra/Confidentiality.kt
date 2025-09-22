@@ -3,8 +3,9 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
+import de.fraunhofer.aisec.confirmate.queries.TlsHttpEndpoint
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
-import de.fraunhofer.aisec.confirmate.queries.catalogs.german.SymmetricCipher
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
@@ -77,6 +78,8 @@ context(cryptoCatalog: CryptoCatalog)
 fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
     if (this is SymmetricCipher) {
         return cryptoCatalog.checkSymmetricEncryption()
+    } else {
+        return cryptoCatalog.checkAsymmetricEncryption()
     }
 
     return QueryTree(
@@ -88,10 +91,9 @@ fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
     )
 }
 
-context(translationResult: TranslationResult)
+context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun dataInTransitEncrypted(): QueryTree<Boolean> {
-
-    TODO()
+    return secureHttpRequests() and secureHttpResponses()
 }
 
 context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
@@ -128,7 +130,7 @@ fun secureHttpResponses(): QueryTree<Boolean> =
     // requests
     translationResult.allExtended<HttpEndpointOperation> {
         // Get the HttpClient and check if it's configured to use (only) TLS.
-        val isSecureChannel = it.concept.isTLS
+        val isSecureChannel = (it.concept as? TlsHttpEndpoint)?.isTLS
         val secureChannel =
             QueryTree(
                 value = isSecureChannel == true,
