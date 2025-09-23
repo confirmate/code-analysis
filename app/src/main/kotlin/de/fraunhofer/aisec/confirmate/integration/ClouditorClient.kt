@@ -98,12 +98,12 @@ class ClouditorClient {
         }
 
         for (evidence in clouditorResults.second) {
-            val response = EvidenceStoreApi().evidenceStoreStoreEvidence(evidence)
+            val response = evidenceApi.evidenceStoreStoreEvidence(evidence)
             if (response.success) {
                 log.info("Successfully sent evidence with id ${evidence.id} to Clouditor.")
             } else {
                 log.error(
-                    "Failed to send evidence with id ${evidence.id} to Clouditor: ${response.response}"
+                    "Failed to send evidence with id ${evidence.id} to Clouditor: ${response.response}."
                 )
             }
         }

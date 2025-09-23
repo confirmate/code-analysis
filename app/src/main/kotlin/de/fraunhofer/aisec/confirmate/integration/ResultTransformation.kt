@@ -7,6 +7,7 @@ import de.fraunhofer.aisec.codyze.AnalysisResult
 import io.clouditor.model.AssessmentResult
 import io.clouditor.model.Evidence
 import io.clouditor.model.MetricConfiguration
+import io.clouditor.model.ObjectStorage
 import io.clouditor.model.Resource
 import java.time.OffsetDateTime
 import kotlin.uuid.ExperimentalUuidApi
@@ -26,15 +27,23 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
     val assessmentResults =
         this.requirementsResults
             .map { (requirementId, result) ->
+                // The clouditor needs a new UUID for the evidence, so we generate one here
+                // and reference it in the assessment result.
+                val evidenceId = Uuid.random().toString()
                 evidences.add(
                     Evidence(
-                        id = result.id.toString(),
+                        id = evidenceId,
                         timestamp = currentTimestamp,
                         targetOfEvaluationId = toeId,
                         toolId = codyzeToolId,
-                        // raw = result.printNicely(),
-                        resource = Resource(),
-                        experimentalRelatedResourceIds = listOf("TODO"),
+                        resource =
+                            Resource(
+                                objectStorage =
+                                    ObjectStorage(
+                                        id = "manual resource: object storage 0",
+                                        name = "object storage 0",
+                                    )
+                            ),
                     )
                 )
 
@@ -51,7 +60,7 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
                             isDefault = true,
                         ),
                     compliant = result.value,
-                    evidenceId = result.id.toString(),
+                    evidenceId = evidenceId,
                     resourceId = "TODO",
                     resourceTypes = listOf("Code"),
                     complianceComment = result.printNicely(),
