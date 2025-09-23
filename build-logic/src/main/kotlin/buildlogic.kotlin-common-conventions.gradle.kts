@@ -1,10 +1,15 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    // Apply the org.jetbrains.kotlin.jvm Plugin to add support for Kotlin.
-    id("org.jetbrains.kotlin.jvm")
+    id("buildlogic.kotlin-formatting-conventions")
+    `java-library`
+    `jvm-test-suite`
+    jacoco
+    kotlin("plugin.serialization")
+    kotlin("jvm")
 }
 
 repositories {
@@ -33,12 +38,6 @@ repositories {
     }
 }
 
-dependencies {
-    constraints {
-        // Define dependency versions as constraints
-        implementation("org.apache.commons:commons-text:1.13.0")
-    }
-}
 
 testing {
     suites {
@@ -58,13 +57,17 @@ testing {
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+kotlin {
+    jvmToolchain(21)
 }
 
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
     freeCompilerArgs.set(listOf("-Xcontext-parameters"))
+}
+
+val libs = the<LibrariesForLibs>()  // necessary to be able to use the version catalog in buildSrc
+dependencies {
+    implementation(libs.apache.commons.lang3)
+    implementation(libs.jackson.module)
 }
