@@ -3,8 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.queries.HttpEndpointWithProtocol
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
-import de.fraunhofer.aisec.confirmate.queries.TlsHttpEndpoint
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
@@ -130,19 +130,16 @@ fun secureHttpResponses(): QueryTree<Boolean> =
     // requests
     translationResult.allExtended<HttpEndpointOperation> {
         // Get the HttpClient and check if it's configured to use (only) TLS.
-        val isSecureChannel = (it.concept as? TlsHttpEndpoint)?.isTLS
         val secureChannel =
-            QueryTree(
-                value = isSecureChannel == true,
-                stringRepresentation =
-                    if (isSecureChannel == true) {
-                        "Data is sent over a secure channel (TLS)"
-                    } else {
-                        "Data is sent over an insecure channel (no TLS)"
-                    },
-                node = it,
-                operator = GenericQueryOperators.EVALUATE,
-            )
+            (it.concept as? HttpEndpointWithProtocol)?.protocol?.let {
+                with(it) { cryptoCatalog.checkProtocol() }
+            }
+                ?: QueryTree(
+                    value = false,
+                    stringRepresentation = "No communication protocol configured for endpoint",
+                    node = it,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
 
         // Check if data sent via the endpoint (i.e., the responses) are encrypted before the
         // response is sent

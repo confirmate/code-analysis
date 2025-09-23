@@ -56,7 +56,7 @@ class HashFunction(underlyingNode: Node?) : Concept(underlyingNode) {
     var outputSize: Int? = null
 }
 
-class TlsHttpEndpoint(
+class HttpEndpointWithProtocol(
     underlyingNode: FunctionDeclaration? = null,
     httpMethod: HttpMethod,
     path: String,
@@ -74,8 +74,15 @@ class TlsHttpEndpoint(
         authorization = authorization,
         requestContext = requestContext,
     ) {
-    var isTLS: Boolean? = null
+    var protocol: CommunicationProtocol? = null
 }
+
+class CommunicationProtocol(
+    val protocolName: String,
+    val versionNumber: String,
+    val cipherSuites: List<CipherSuite>?,
+    underlyingNode: Node?,
+) : Concept(underlyingNode)
 
 /**
  * This class represents a Random Number Generator (RNG) concept in the code property graph (CPG).

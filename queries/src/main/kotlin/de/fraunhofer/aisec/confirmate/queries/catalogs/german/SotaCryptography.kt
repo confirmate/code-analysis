@@ -23,7 +23,7 @@ import kotlin.collections.contains
 
 /*
  * This file defines queries for analyzing cryptographic practices in code using the CPG (Code Property Graph) framework.
- * As a reference, we use the BSI TR021-02 standard (https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR02102/TR02102.html).
+ * As a reference, we use the BSI TR02102 standard (https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR02102/TR02102.html).
  */
 
 // Symmetric encryption algorithms, their modus, and recommended key lengths. There are also

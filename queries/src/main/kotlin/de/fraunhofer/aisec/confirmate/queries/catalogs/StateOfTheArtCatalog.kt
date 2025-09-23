@@ -3,6 +3,7 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs
 
+import de.fraunhofer.aisec.confirmate.queries.CommunicationProtocol
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Cipher
 import de.fraunhofer.aisec.cpg.query.QueryTree
@@ -20,7 +21,6 @@ abstract class RequirementsCatalog
  * such an interpretation.
  */
 interface CryptoCatalog {
-
     context(cipher: SymmetricCipher)
     fun checkSymmetricEncryption(): QueryTree<Boolean>
 
@@ -32,6 +32,9 @@ interface CryptoCatalog {
 
     context(cipher: Cipher)
     fun checkHashFunction(): QueryTree<Boolean>
+
+    context(cipher: CommunicationProtocol)
+    fun checkProtocol(): QueryTree<Boolean>
 
     fun checkPQCEncryption(): QueryTree<Boolean>
 }
