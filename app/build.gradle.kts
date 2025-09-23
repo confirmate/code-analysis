@@ -4,15 +4,55 @@
  * This project uses @Incubating APIs which are subject to change.
  */
 
-plugins { id("buildlogic.kotlin-application-conventions") }
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
+plugins {
+    id("buildlogic.kotlin-application-conventions")
+
+    // generator for OpenAPI specs
+    id("org.openapi.generator") version "7.15.0"
+}
 
 dependencies {
     api(libs.eclipse.cdt.core)
     api(libs.bundles.cpg) { isChanging = true }
     api(libs.jep)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlin.reflect)
+    implementation(libs.bundles.ktor)
+    implementation(libs.bundles.jackson)
 }
 
 application {
     // Define the main class for the application.
     mainClass = "de.fraunhofer.aisec.confirmate.AppKt"
 }
+
+val apiDescription = "$rootDir/app/src/main/resources/openapi"
+val apiRootName = "io.clouditor"
+
+// generates an openapi-project from the `orchestrator.yaml` specification in the resources
+// directory
+tasks.register<GenerateTask>("generateApi") {
+    generatorName.set("kotlin")
+    inputSpecRootDirectorySkipMerge.set(false)
+    inputSpecRootDirectory.set(apiDescription)
+    outputDir.set("${project.projectDir}/build/generated-sources")
+    apiPackage.set("$apiRootName.api")
+    invokerPackage.set("$apiRootName.invoker")
+    modelPackage.set("$apiRootName.model")
+    library.set("jvm-ktor")
+    configOptions.set(
+        mapOf(
+            // "dateLibrary" to "kotlinx-datetime",
+            // "serializationLibrary" to "kotlinx_serialization"
+            "serializationLibrary" to "jackson"
+        )
+    )
+    validateSpec.set(false)
+}
+
+sourceSets.main { kotlin.srcDirs("${project.projectDir}/build/generated-sources/src/main/kotlin") }
+
+tasks.withType<KotlinCompile>().configureEach { dependsOn("generateApi") }
