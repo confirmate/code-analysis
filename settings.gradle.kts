@@ -1,5 +1,3 @@
-rootProject.name = "code-analysis"
-
 pluginManagement {
     // Include 'plugins build' to define convention plugins.
     includeBuild("build-logic")
@@ -12,6 +10,10 @@ plugins {
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
-include("app", "queries")
+rootProject.name = "code-analysis"
+
+include("app")
+
+include("queries")
 
 include("example-project")
