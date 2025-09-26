@@ -29,7 +29,7 @@ import de.fraunhofer.aisec.cpg.query.or
 /**
  * This query checks whether each path leading to a persistent data sink encrypts the data before
  * writing it to the sink. By default, it considers [WriteFile] nodes as persistent sinks and looks
- * for [Encrypt] nodes in the data and execution flow. What is considered as a persistent sink and
+ * for [EncryptionOperation] nodes in the data and execution flow. What is considered as a persistent sink and
  * how to extract the written data can be customized by providing the [isPersistentSink] and
  * [writtenData] functions, respectively.
  */
@@ -62,6 +62,7 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
         this.alwaysComesFrom(
             scope = Interprocedural(),
             predicate = { enc ->
+                // TODO: Should be an encryption, not any operation (i.e., decryption)
                 if (enc is EncryptionOperation) {
                     relevantEncryptOperations.add(enc)
                     true
