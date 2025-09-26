@@ -145,3 +145,7 @@ class RNG(underlyingNode: Node?) : Concept(underlyingNode)
  * it performs a get operation on the RNG.
  */
 class RngGet(underlyingNode: Node?, val rng: RNG) : Operation(rng, underlyingNode)
+
+/** The [underlyingNode] gets the current time of the system. */
+class GetCurrentTime(concept: Concept, underlyingNode: Node?) :
+    Operation(concept = concept, underlyingNode = underlyingNode)
