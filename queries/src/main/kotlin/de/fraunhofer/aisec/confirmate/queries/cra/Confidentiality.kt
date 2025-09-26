@@ -7,7 +7,7 @@ import de.fraunhofer.aisec.confirmate.queries.HttpEndpointWithProtocol
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.confirmate.queries.catalogs.TLSCatalog
-import de.fraunhofer.aisec.confirmate.queries.catalogs.cipherName
+import de.fraunhofer.aisec.confirmate.queries.catalogs.helpers.cipherName
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume

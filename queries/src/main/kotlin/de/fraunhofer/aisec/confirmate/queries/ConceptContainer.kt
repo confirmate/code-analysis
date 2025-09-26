@@ -87,9 +87,15 @@ class HttpEndpointWithProtocol(
 open class CommunicationProtocol(
     val protocolName: String,
     val versionNumber: String,
-    val cipherSuites: List<CipherSuite>?,
+    open val cipherSuites: List<CipherSuite>?,
     underlyingNode: Node?,
 ) : Concept(underlyingNode)
+
+open class TLS(versionNumber: String, cipherSuites: List<CipherSuite>?, underlyingNode: Node?) :
+    CommunicationProtocol("TLS", versionNumber, cipherSuites, underlyingNode)
+
+class TLS1_2(override val cipherSuites: List<TLS1_2_CipherSuite>?, underlyingNode: Node?) :
+    TLS("1.2", cipherSuites, underlyingNode)
 
 class TLS1_3(
     /** The supported groups (also known as elliptic curves) communicated by this client/server. */
@@ -107,7 +113,7 @@ class TLS1_3(
     /** The supported AEAD algorithms communicated by this client/server. */
     cipherSuites: List<CipherSuite>?,
     underlyingNode: Node?,
-) : CommunicationProtocol("TLS", "1.3", cipherSuites, underlyingNode)
+) : TLS("1.3", cipherSuites, underlyingNode)
 
 class TLS1_2_CipherSuite(
     val ciphersuiteName: String,

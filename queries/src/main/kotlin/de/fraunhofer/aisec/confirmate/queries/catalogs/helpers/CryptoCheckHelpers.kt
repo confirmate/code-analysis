@@ -1,11 +1,12 @@
 /*
  * This file is part of the Confirmate project.
  */
-package de.fraunhofer.aisec.confirmate.queries.catalogs
+package de.fraunhofer.aisec.confirmate.queries.catalogs.helpers
 
 import de.fraunhofer.aisec.confirmate.queries.HybridCipher
 import de.fraunhofer.aisec.confirmate.queries.RngGet
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
+import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
 import de.fraunhofer.aisec.cpg.graph.Backward
@@ -225,7 +226,7 @@ fun Cipher.isRSA(): QueryTree<Boolean> =
 
 /**
  * Checks if the key exchange mechanism used by this [HybridCipher] is considered state of the art
- * according to the provided [CryptoCatalog].
+ * according to the provided [de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog].
  */
 context(catalog: CryptoCatalog)
 fun HybridCipher.isKeyExchangeOk() =
