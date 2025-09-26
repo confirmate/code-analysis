@@ -26,8 +26,12 @@ SOTA of certain regulations/standards/requirements/guidelines. The classes shoul
  * the [Cipher] class and includes additional properties specific to symmetric ciphers, such as the
  * mode of operation, tag size, IV size, and the initialization vector itself.
  */
-class SymmetricCipher(blockSize: Int, keySize: Int, cipherName: String, underlyingNode: Node?) :
-    Cipher(blockSize, keySize, cipherName, underlyingNode!!) {
+class SymmetricCipher(
+    blockSize: Int,
+    keySize: Int,
+    var cipherName: String?,
+    underlyingNode: Node?,
+) : Cipher(blockSize, keySize, cipherName!!, underlyingNode!!) {
     /** The modus of operation, e.g., "GCM", "CBC", "CCM", ... */
     var modus: String? = null
     /** The size of an authentication tag in bits, if present for the given [modus]. */
