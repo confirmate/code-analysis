@@ -33,8 +33,10 @@ interface CryptoCatalog {
     context(cipher: Cipher)
     fun checkHashFunction(): QueryTree<Boolean>
 
-    context(cipher: CommunicationProtocol)
-    fun checkProtocol(): QueryTree<Boolean>
-
     fun checkPQCEncryption(): QueryTree<Boolean>
+}
+
+interface TLSCatalog {
+    context(protocol: CommunicationProtocol)
+    fun checkTLS(): QueryTree<Boolean>
 }
