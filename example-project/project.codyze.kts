@@ -3,6 +3,8 @@
  */
 @file:OptIn(ExperimentalUuidApi::class)
 
+import de.fraunhofer.aisec.confirmate.queries.catalogs.german.BSI_TR02102
+import de.fraunhofer.aisec.confirmate.queries.cra.*
 import kotlin.uuid.ExperimentalUuidApi
 
 include {
@@ -29,9 +31,15 @@ project {
     requirements {
         category("CRA") {
             requirement {
-                name = "X.1.1.1"
+                name = "X.1.1.6"
+                description =
+                    "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"
 
-                fulfilledBy { true eq true }
+                fulfilledBy {
+                    with(BSI_TR02102()) {
+                        dataEncryptedBeforePersisting() and dataInTransitEncrypted()
+                    }
+                }
             }
         }
     }

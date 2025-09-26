@@ -4,8 +4,6 @@ import org.gradle.accessors.dm.LibrariesForLibs
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("buildlogic.kotlin-formatting-conventions")
-    `java-library`
     `jvm-test-suite`
     jacoco
     kotlin("plugin.serialization")

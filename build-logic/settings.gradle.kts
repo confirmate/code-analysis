@@ -1,4 +1,3 @@
-rootProject.name = "code-analysis"
 
 dependencyResolutionManagement {
     // Reuse version catalog from the main build.
@@ -9,3 +8,5 @@ dependencyResolutionManagement {
         )
     }
 }
+
+rootProject.name = "build-logic"
