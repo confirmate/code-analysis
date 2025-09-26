@@ -80,12 +80,30 @@ class HttpEndpointWithProtocol(
     var protocol: CommunicationProtocol? = null
 }
 
-class CommunicationProtocol(
+open class CommunicationProtocol(
     val protocolName: String,
     val versionNumber: String,
     val cipherSuites: List<CipherSuite>?,
     underlyingNode: Node?,
 ) : Concept(underlyingNode)
+
+class TLS1_3(
+    /** The supported groups (also known as elliptic curves) communicated by this client/server. */
+    val supportedGroups: Set<String>,
+    /** The supported signature algorithms communicated by this client/server. */
+    val signatureAlgorithms: Set<String>,
+    /** The supported PSK modes communicated by this client/server. */
+    val pskHandshakeModes: Set<String>,
+    /**
+     * The supported fields sent in signature_algorithms_cert" in the "certificate_authority"
+     * extension of a certificate request sent from the server to the client or what is
+     * used/supported by the client. `null` if no certificate request was sent.
+     */
+    val certificateSignatureAlgorithms: Set<String>? = null,
+    /** The supported AEAD algorithms communicated by this client/server. */
+    cipherSuites: List<CipherSuite>?,
+    underlyingNode: Node?,
+) : CommunicationProtocol("TLS", "1.3", cipherSuites, underlyingNode)
 
 class TLS1_2_CipherSuite(
     val ciphersuiteName: String,

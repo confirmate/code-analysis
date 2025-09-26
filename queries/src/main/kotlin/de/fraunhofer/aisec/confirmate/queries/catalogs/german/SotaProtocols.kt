@@ -5,6 +5,7 @@ package de.fraunhofer.aisec.confirmate.queries.catalogs.german
 
 import de.fraunhofer.aisec.confirmate.queries.CommunicationProtocol
 import de.fraunhofer.aisec.confirmate.queries.TLS1_2_CipherSuite
+import de.fraunhofer.aisec.confirmate.queries.TLS1_3
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.and
@@ -173,4 +174,179 @@ internal fun CommunicationProtocol.checkTLS1_2(
     // model yet, so we do not check them for now.
 
     return isTLS12 and acceptedSuites
+}
+
+/**
+ * Checks whether the protocol is TLS 1.3 with recommended ciphers and settings. [forbidsPSK] should
+ * be set to `true` if the use-case does not allow for a pre-shared key.
+ */
+internal fun CommunicationProtocol.checkTLS1_3(forbidsPSK: Boolean = false): QueryTree<Boolean> {
+    val isTLS13 = isProtocol("TLS", "1.3")
+    if (this !is TLS1_3) {
+        return QueryTree(
+            value = false,
+            stringRepresentation = "The protocol is not TLS 1.3",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    } else if (!isTLS13.value) {
+        return isTLS13
+    }
+
+    val recommendedHandshakeWithPSK =
+        setOf(
+            "psk_ke", // Until 2026
+            "psk_dhe_ke",
+        )
+    val usesOnlyRecommendedPSKHandshakeModes =
+        this.pskHandshakeModes
+            .map { mode ->
+                val isRecommendedMode = mode in recommendedHandshakeWithPSK
+                QueryTree(
+                    value = isRecommendedMode,
+                    stringRepresentation =
+                        if (isRecommendedMode) {
+                            "TLS 1.3 PSK handshake mode $mode is recommended"
+                        } else {
+                            "TLS 1.3 PSK handshake mode $mode is NOT recommended. Should be one of $recommendedHandshakeWithPSK"
+                        },
+                    node = this,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+            .mergeWithAll()
+
+    val recommendedSupportedGroups =
+        setOf(
+            "secp256r1",
+            "secp384r1",
+            "secp521r1",
+            "brainpoolP256r1tls13",
+            "brainpoolP384r1tls13",
+            "brainpoolP512r1tls13",
+            "ffdhe3072",
+            "ffdhe4096",
+        )
+    val usesOnlyRecommendedSupportedGroups =
+        this.supportedGroups
+            .map { group ->
+                val isRecommendedGroup = group in recommendedSupportedGroups
+                QueryTree(
+                    value = isRecommendedGroup,
+                    stringRepresentation =
+                        if (isRecommendedGroup) {
+                            "TLS 1.3 supported group $group is recommended"
+                        } else {
+                            "TLS 1.3 supported group $group is NOT recommended. Should be one of $recommendedSupportedGroups"
+                        },
+                    node = this,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+            .mergeWithAll()
+
+    val recommendedSignatureAlgorithms =
+        setOf(
+            "rsa_pss_rsae_sha256",
+            "rsa_pss_rsae_sha384",
+            "rsa_pss_rsae_sha512",
+            "rsa_pss_pss_sha256",
+            "rsa_pss_pss_sha384",
+            "rsa_pss_pss_sha512",
+            "ecdsa_secp256r1_sha256",
+            "ecdsa_secp384r1_sha384",
+            "ecdsa_secp521r1_sha512",
+            "ecdsa_brainpoolP256r1tls13_sha256",
+            "ecdsa_brainpoolP384r1tls13_sha384",
+            "ecdsa_brainpoolP512r1tls13_sha512",
+        )
+    val usesOnlyRecommendedSignatureAlgorithms =
+        this.signatureAlgorithms
+            .map { algorithm ->
+                val isRecommendedAlg = algorithm in recommendedSignatureAlgorithms
+                QueryTree(
+                    value = isRecommendedAlg,
+                    stringRepresentation =
+                        if (isRecommendedAlg) {
+                            "TLS 1.3 signature algorithm $algorithm is recommended"
+                        } else {
+                            "TLS 1.3 signature algorithm $algorithm is NOT recommended. Should be one of $recommendedSignatureAlgorithms"
+                        },
+                    node = this,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+            .mergeWithAll()
+
+    val recommendedCertSignatureAlgorithms =
+        setOf(
+            "rsa_pkcs1_sha256", // Until 2025
+            "rsa_pkcs1_sha384", // Until 2025
+            "rsa_pkcs1_sha512", // Until 2025
+            "rsa_pss_rsae_sha256",
+            "rsa_pss_rsae_sha384",
+            "rsa_pss_rsae_sha512",
+            "rsa_pss_pss_sha256",
+            "rsa_pss_pss_sha384",
+            "rsa_pss_pss_sha512",
+            "ecdsa_secp256r1_sha256",
+            "ecdsa_secp384r1_sha384",
+            "ecdsa_secp521r1_sha512",
+            "ecdsa_brainpoolP256r1tls13_sha256",
+            "ecdsa_brainpoolP384r1tls13_sha384",
+            "ecdsa_brainpoolP512r1tls13_sha512",
+        )
+    val usesOnlyRecommendedCertSignatureAlgorithms =
+        this.certificateSignatureAlgorithms
+            ?.map { algorithm ->
+                val isRecommendedAlg = algorithm in recommendedCertSignatureAlgorithms
+                QueryTree(
+                    value = isRecommendedAlg,
+                    stringRepresentation =
+                        if (isRecommendedAlg) {
+                            "TLS 1.3 certificate signature algorithm $algorithm is recommended"
+                        } else {
+                            "TLS 1.3 certificate signature algorithm $algorithm is NOT recommended. Should be one of $recommendedCertSignatureAlgorithms"
+                        },
+                    node = this,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+            ?.mergeWithAll()
+
+    val recommendedCipherSuites =
+        setOf("TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384", "TLS_AES_128_CCM_SHA256")
+    val usesOnlyRecommendedCipherSuites =
+        this.cipherSuites
+            ?.map { suite ->
+                val isRecommendedSuite = suite.name.toString() in recommendedCipherSuites
+                QueryTree(
+                    value = isRecommendedSuite,
+                    stringRepresentation =
+                        if (isRecommendedSuite) {
+                            "TLS 1.3 cipher suite ${suite.name} is recommended"
+                        } else {
+                            "TLS 1.3 cipher suite ${suite.name} is NOT recommended. Should be one of $recommendedCipherSuites"
+                        },
+                    node = suite,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+            ?.mergeWithAll()
+            ?: QueryTree(
+                value = false,
+                stringRepresentation = "No cipher suites found for TLS 1.3",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+
+    return isTLS13 and
+        listOfNotNull(
+                usesOnlyRecommendedPSKHandshakeModes,
+                usesOnlyRecommendedSupportedGroups,
+                usesOnlyRecommendedSignatureAlgorithms,
+                usesOnlyRecommendedCipherSuites,
+                usesOnlyRecommendedCertSignatureAlgorithms,
+            )
+            .mergeWithAll()
 }
