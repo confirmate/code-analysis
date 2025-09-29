@@ -61,7 +61,11 @@ project {
                     } and
                         logEntriesHaveTimestamp() and
                         logEntriesContainInitiator() and
-                        loggingOptOut { false /* There's no opt-out mechanism we can identify. */ }
+                        loggingOptOut {
+                            false /* There's no opt-out mechanism we can identify. */
+                        } and
+                        loggingEnabledByDefault() /* and
+                                                  loggedDataAvailableToUser()*/
                 }
             }
         }
