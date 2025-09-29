@@ -45,6 +45,13 @@ project {
                     }
                 }
             }
+            requirement {
+                name = "X.1.1.10"
+                description =
+                    "Products with digital elements shall minimise the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks;"
+
+                fulfilledBy { interfacesAreRequired() }
+            }
 
             requirement {
                 name = "X.1.1.13"
