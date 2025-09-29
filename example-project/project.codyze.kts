@@ -68,6 +68,20 @@ project {
                                                   loggedDataAvailableToUser()*/
                 }
             }
+            requirement {
+                name = "X.1.1.14"
+                description =
+                    "Products with digital elements shall provide the possibility for users to securely and easily remove on a permanent basis all data and settings and, where such data can be transferred to other products or systems, ensure that this is done in a secure manner."
+
+                fulfilledBy {
+                    with(BSI_TR02102()) { secureHttpRequests() and secureHttpResponses() } and
+                        allowDeletionOfData(
+                            trigger = { false },
+                            getIdentity = { null },
+                            dataSinks = listOf(),
+                        )
+                }
+            }
         }
     }
 }
