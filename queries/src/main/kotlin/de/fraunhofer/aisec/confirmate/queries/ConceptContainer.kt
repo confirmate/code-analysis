@@ -180,4 +180,4 @@ class LogWriteWithArguments(
     val logLevelE: LogLevel,
     override val concept: LoggingWithLevel,
     underlyingNode: Node,
-) : LogWrite(logLevel.toString(), concept, concept, underlyingNode)
+) : LogWrite(logLevelE.toString(), concept, concept, underlyingNode)
