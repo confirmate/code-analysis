@@ -45,6 +45,26 @@ project {
                     }
                 }
             }
+
+            requirement {
+                name = "X.1.1.7"
+                description =
+                    "Products with digital elements shall protect the integrity of stored, transmitted or otherwise processed data, personal or other, commands, programs and configuration against any manipulation or modification not authorised by the user, and report on corruptions;"
+
+                fulfilledBy {
+                    with(BSI_TR02102()) {
+                        secureProtocolsEnabled(
+                            {
+                                true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
+                            },
+                            {
+                                false /* We do not know this, so let's fail to enforce a manual check. */
+                            },
+                        )
+                    }
+                }
+            }
+            
             requirement {
                 name = "X.1.1.10"
                 description =
