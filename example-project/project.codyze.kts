@@ -96,7 +96,8 @@ project {
                         allowDeletionOfData(
                             trigger = { false },
                             getIdentity = { null },
-                            dataSinks = listOf(),
+                            dataSinks =
+                                sinksHoldingUserData { false /* There's no user data we process */ },
                         )
                 }
             }
