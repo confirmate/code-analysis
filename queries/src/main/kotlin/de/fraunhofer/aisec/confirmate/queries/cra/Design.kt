@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
+import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
@@ -13,6 +15,8 @@ import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.allExtended
 
+@AssessesMetrics("StandardProtocolsListed")
+@RepresentsEvidences("E87")
 context(translationResult: TranslationResult)
 fun interfacesAreRequired(
     isRequiredInterface: (Node) -> Boolean = { it is HttpClientOperation || it is HttpEndpoint }
