@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
+import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
 import de.fraunhofer.aisec.confirmate.queries.HttpClientWithProtocol
 import de.fraunhofer.aisec.confirmate.queries.HttpRequestWithArguments
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
@@ -36,6 +38,8 @@ import de.fraunhofer.aisec.cpg.query.or
  * persistent sink and how to extract the written data can be customized by providing the
  * [isPersistentSink] and [writtenData] functions, respectively.
  */
+@AssessesMetrics("AtRestEncryptionEnabled")
+@RepresentsEvidences("E70")
 context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun dataEncryptedBeforePersisting(
     isPersistentSink: (Node) -> Boolean = { it is WriteFile },
@@ -108,6 +112,8 @@ fun Cipher.conformsToStateOfTheArt(): QueryTree<Boolean> {
     )
 }
 
+@AssessesMetrics("InTransitEncryptionEnabled")
+@RepresentsEvidences("E69", "E73", "E101")
 context(
 translationResult: TranslationResult,
 cryptoCatalog: CryptoCatalog,

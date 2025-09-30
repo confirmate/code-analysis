@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
+import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
 import de.fraunhofer.aisec.confirmate.queries.HttpClientWithProtocol
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.confirmate.queries.catalogs.TLSCatalog
@@ -80,6 +82,8 @@ fun secureHttpResponses(
  * @param secureConnectionEnabledCheck Function to determine if secure connection is enabled in
  *   configuration
  */
+@AssessesMetrics("InTransitEncryptionEnabled")
+@RepresentsEvidences("E69", "E73", "E101")
 context(
 translationResult: TranslationResult,
 cryptoCatalog: CryptoCatalog,
