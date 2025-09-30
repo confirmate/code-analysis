@@ -19,9 +19,9 @@ import de.fraunhofer.aisec.cpg.query.allExtended
 @RepresentsEvidences("E87")
 context(translationResult: TranslationResult)
 fun interfacesAreRequired(
-    isRequiredInterface: (Node) -> Boolean = { it is HttpClientOperation || it is HttpEndpoint }
+    isInterface: (Node) -> Boolean = { it is HttpClientOperation || it is HttpEndpoint }
 ): QueryTree<Boolean> {
-    return translationResult.allExtended<Node>(isRequiredInterface) {
+    return translationResult.allExtended<Node>(isInterface) {
         QueryTree(
                 value = true,
                 stringRepresentation =
@@ -32,6 +32,26 @@ fun interfacesAreRequired(
             .assume(
                 AssumptionType.TrustBoundaryAssumption,
                 "We assume that the identified interface is required for the application. Please verify that the interface is really required and that it does not unnecessarily place other components at risk.",
+            )
+    }
+}
+
+@AssessesMetrics("RiskAssessmentMappingtoServicesandControl")
+@RepresentsEvidences("E3")
+context(translationResult: TranslationResult)
+fun interfaceHasRiskAssessment(
+    isInterface: (Node) -> Boolean = { it is HttpClientOperation || it is HttpEndpoint }
+): QueryTree<Boolean> {
+    return translationResult.allExtended<Node>(isInterface) {
+        QueryTree(
+                value = true,
+                stringRepresentation = "There is an interface with a risk assessment.",
+                node = it,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+            .assume(
+                AssumptionType.TrustBoundaryAssumption,
+                "We assume that the identified interface appropriately considered in the risk analysis. This should be verified manually.",
             )
     }
 }
