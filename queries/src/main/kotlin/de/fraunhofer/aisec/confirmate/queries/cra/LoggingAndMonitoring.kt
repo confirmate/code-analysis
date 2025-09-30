@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
+import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
 import de.fraunhofer.aisec.confirmate.queries.GetCurrentTime
 import de.fraunhofer.aisec.confirmate.queries.LogWriteWithArguments
 import de.fraunhofer.aisec.cpg.TranslationResult
@@ -40,6 +42,8 @@ fun loggingEnabledByDefault(): QueryTree<Boolean> {
         )
 }
 
+@AssessesMetrics("SecurityDataAvailableToUser")
+@RepresentsEvidences("E97")
 context(translationResult: TranslationResult)
 fun loggedDataAvailableToUser(): QueryTree<Boolean> {
     TODO()
@@ -119,6 +123,8 @@ fun ControlDependence.isOptOutCheck(
  *
  * Metric: ActivityLoggingEnabled
  */
+@AssessesMetrics("ActivityLoggingEnabled")
+@RepresentsEvidences("E99")
 context(translationResult: TranslationResult)
 fun relevantActivityHasLogging(
     relevantActivitiesSpecifier: ((Node) -> Boolean)
@@ -215,6 +221,8 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
  * This query checks that each [LogWrite] an argument which represents the initiator of the action.
  * We are currently supporting [Identity] as initiator.
  */
+@AssessesMetrics("IdentityRecentActivity")
+@RepresentsEvidences("E99", "E96")
 context(translationResult: TranslationResult)
 fun logEntriesContainInitiator(): QueryTree<Boolean> {
     return translationResult.allExtended<LogWriteWithArguments> { logWrite ->
