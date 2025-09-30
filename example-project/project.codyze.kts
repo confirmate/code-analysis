@@ -64,7 +64,7 @@ project {
                     }
                 }
             }
-            
+
             requirement {
                 name = "X.1.1.10"
                 description =
