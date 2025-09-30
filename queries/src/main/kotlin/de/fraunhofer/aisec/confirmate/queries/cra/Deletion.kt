@@ -3,6 +3,8 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
+import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.Forward
@@ -24,6 +26,8 @@ import de.fraunhofer.aisec.cpg.query.dataFlow
 import de.fraunhofer.aisec.cpg.query.executionPath
 import de.fraunhofer.aisec.cpg.query.mergeWithAll
 
+@AssessesMetrics("SecureDataDeletionMechanismActivated")
+@RepresentsEvidences("E102")
 context(translationResult: TranslationResult)
 fun allowDeletionOfData(
     trigger: (Node) -> Boolean,
