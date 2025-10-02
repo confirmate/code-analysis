@@ -74,7 +74,11 @@ project {
                 description =
                     "Products with digital elements shall minimise the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks;"
 
-                fulfilledBy { interfacesAreRequired() }
+                fulfilledBy {
+                    interfacesAreRequired()
+                        .withMetricId("StandardProtocolsListed")
+                        .withEvidenceId("E87")
+                }
             }
 
             requirement {
@@ -82,7 +86,14 @@ project {
                 description =
                     "Products with digital elements shall be designed, developed and produced to limit attack surfaces, including external interfaces;"
 
-                fulfilledBy { interfaceHasRiskAssessment() and interfacesAreRequired() }
+                fulfilledBy {
+                    interfaceHasRiskAssessment()
+                        .withMetricId("RiskAssessmentMappingtoServicesandControl")
+                        .withEvidenceId("E3") and
+                        interfacesAreRequired()
+                            .withMetricId("StandardProtocolsListed")
+                            .withEvidenceId("E87")
+                }
             }
 
             requirement {
