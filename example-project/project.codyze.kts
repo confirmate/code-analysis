@@ -100,11 +100,15 @@ project {
                 fulfilledBy {
                     with(BSI_TR02102()) { secureHttpRequests() and secureHttpResponses() } and
                         allowDeletionOfData(
-                            trigger = { false },
-                            getIdentity = { null },
-                            dataSinks =
-                                sinksHoldingUserData { false /* There's no user data we process */ },
-                        )
+                                trigger = { false },
+                                getIdentity = { null },
+                                dataSinks =
+                                    sinksHoldingUserData {
+                                        false /* There's no user data we process */
+                                    },
+                            )
+                            .withMetricId("SecureDataDeletionMechanismActivated")
+                            .withEvidenceId("E102")
                 }
             }
         }
