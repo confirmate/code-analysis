@@ -41,7 +41,10 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        dataEncryptedBeforePersisting() and dataInTransitEncrypted()
+                        dataEncryptedBeforePersisting()
+                            .withMetricId("AtRestEncryptionEnabled")
+                            .withEvidenceId("E70") and
+                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled")
                     }
                 }
             }
@@ -53,13 +56,14 @@ project {
                 fulfilledBy {
                     with(BSI_TR02102()) {
                         secureProtocolsEnabled(
-                            {
-                                true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
-                            },
-                            {
-                                false /* We do not know this, so let's fail to enforce a manual check. */
-                            },
-                        )
+                                {
+                                    true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
+                                },
+                                {
+                                    false /* We do not know this, so let's fail to enforce a manual check. */
+                                },
+                            )
+                            .withMetricId("InTransitEncryptionEnabled")
                     }
                 }
             }
@@ -70,20 +74,22 @@ project {
                     " Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
 
                 fulfilledBy {
-                    relevantActivityHasLogging {
-                        it is FileOperation ||
-                            it is DatabaseOperation ||
-                            it is HttpClientOperation ||
-                            it is
-                                AuthenticationOperation /* TODO: No modifications to settings possible yet*/
-                    } and
+                    relevantActivityHasLogging({
+                            it is FileOperation ||
+                                it is DatabaseOperation ||
+                                it is HttpClientOperation ||
+                                it is
+                                    AuthenticationOperation /* TODO: No modifications to settings possible yet*/
+                        })
+                        .withMetricId("ActivityLoggingEnabled")
+                        .withEvidenceId("E99") and
                         logEntriesHaveTimestamp() and
-                        logEntriesContainInitiator() and
+                        logEntriesContainInitiator().withMetricId("IdentityRecentActivity") and
                         loggingOptOut {
                             false /* There's no opt-out mechanism we can identify. */
                         } and
                         loggingEnabledByDefault() /* and
-                                                  loggedDataAvailableToUser()*/
+                                                  loggedDataAvailableToUser().withMetricId("SecurityDataAvailableToUser").withEvidenceId("E97")*/
                 }
             }
         }
