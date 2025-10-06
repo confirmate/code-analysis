@@ -5,6 +5,7 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.cra
 
+import de.fraunhofer.aisec.confirmate.queries.LogWriteWithArguments
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
@@ -16,6 +17,7 @@ import de.fraunhofer.aisec.cpg.graph.allChildrenWithOverlays
 import de.fraunhofer.aisec.cpg.graph.collectAllNextEOGPaths
 import de.fraunhofer.aisec.cpg.graph.concepts.file.WriteFile
 import de.fraunhofer.aisec.cpg.graph.concepts.http.HttpEndpoint
+import de.fraunhofer.aisec.cpg.graph.concepts.logging.LogWrite
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
@@ -102,9 +104,8 @@ fun loggingOnSecurityErrors(
         direction = Forward(GraphToFollow.EOG),
         type = Must,
         scope = Interprocedural(),
-    ) {
-        true// Logging
-    }
+    ) { node -> node is LogWriteWithArguments && node.isLevelEnabled }
+
 }.mergeWithAll()
 }
 
