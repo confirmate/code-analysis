@@ -35,6 +35,22 @@ project {
     requirements {
         category("CRA") {
             requirement {
+                name = "X.1.1.5"
+                description =
+                    "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
+
+                fulfilledBy {
+                    authorizationAtEndpoint().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
+                            authorizationBeforeCriticalFunctionality().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
+                            authenticationAtEndpoint().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
+                            authenticationBeforeCriticalFunctionality().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
+
+                            
+                            loggingOnSecurityErrors().withMetricId("AnomalyDetectionOutput").withEvidenceId("E67")
+                }
+            }
+
+            requirement {
                 name = "X.1.1.6"
                 description =
                     "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"
