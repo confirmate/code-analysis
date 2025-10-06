@@ -4,7 +4,7 @@
 [versions]
 kotlin = "2.2.0-RC3"
 kotlinx-json = "1.8.0"
-cpg = "2414-SNAPSHOT"
+cpg = "2434-SNAPSHOT"
 spotless = "7.0.4"
 ktor = "3.3.0"
 jackson = "2.20.0"
