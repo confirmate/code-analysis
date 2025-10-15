@@ -42,6 +42,10 @@ project {
                 fulfilledBy {
                     authorizationAtEndpoint(authorizationSelector, criticalSelector)
                         .withMetricId("AnomalyDetectionEnabled")
+                    identityPasswordPolicyEnabled()
+                        .withMetricId("IdentityPasswordPolicyEnabled")
+                        .withEvidenceId("E62")
+                        .withEvidenceId("E63")
                         .withEvidenceId("E67") and
                         authorizationBeforeCriticalFunctionality(authorizationSelector, criticalSelector)
                             .withMetricId("AnomalyDetectionEnabled")
@@ -61,7 +65,8 @@ project {
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled")
                                 .withEvidenceId("E62")
-                                .withEvidenceId("E63")
+                                .withEvidenceId("E63") and
+                            anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67")
                 }
             }
 
@@ -75,7 +80,10 @@ project {
                         dataEncryptedBeforePersisting()
                             .withMetricId("AtRestEncryptionEnabled")
                             .withEvidenceId("E70") and
-                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled")
+                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
+                                identityPasswordPolicyEnabled()
+                                    .withMetricId("IdentityPasswordPolicyEnabled")
+                                    .withEvidenceId("E63")
                     }
                 }
             }
@@ -95,7 +103,10 @@ project {
                                     false /* We do not know this, so let's fail to enforce a manual check. */
                                 },
                             )
-                            .withMetricId("InTransitEncryptionEnabled")
+                            .withMetricId("InTransitEncryptionEnabled") and
+                                identityPasswordPolicyEnabled()
+                                    .withMetricId("IdentityPasswordPolicyEnabled")
+                                    .withEvidenceId("E63")
                     }
                 }
             }
