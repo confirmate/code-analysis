@@ -23,7 +23,7 @@ import de.fraunhofer.aisec.cpg.query.dataFlow
  * Checks for vulnerability categories as defined by the
  * [OWASP Top 10 - 2021](https://owasp.org/Top10/).
  */
-class OWASPTop10Scanner : VulnerabilityCatalogScanner {
+class OwaspTop10Scanner : VulnerabilityCatalogScanner {
     /* Missing checks:
        - A04:2021-Insecure Design is a new category for 2021, with a focus on risks related to design flaws. If we genuinely want to “move left” as an industry, it calls for more use of threat modeling, secure design patterns and principles, and reference architectures.
        - A06:2021-Vulnerable and Outdated Components was previously titled Using Components with Known Vulnerabilities and is #2 in the Top 10 community survey, but also had enough data to make the Top 10 via data analysis. This category moves up from #9 in 2017 and is a known issue that we struggle to test and assess risk. It is the only category not to have any Common Vulnerability and Exposures (CVEs) mapped to the included CWEs, so a default exploit and impact weights of 5.0 are factored into their scores.
