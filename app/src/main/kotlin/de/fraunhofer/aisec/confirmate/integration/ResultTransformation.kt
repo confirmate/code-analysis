@@ -62,7 +62,7 @@ private fun QueryTree<*>.toAssessmentResult(
                     ),
                 compliant = value,
                 evidenceId = evidenceId,
-                resourceId = "TODO",
+                resourceId = this@toAssessmentResult.node?.location?.artifactLocation.toString(),
                 resourceTypes = listOf("Code"),
                 complianceComment = this.printNicely(),
                 targetOfEvaluationId = toeId,
