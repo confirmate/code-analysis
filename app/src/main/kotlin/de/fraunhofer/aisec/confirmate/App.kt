@@ -5,6 +5,8 @@ package de.fraunhofer.aisec.confirmate
 
 import de.fraunhofer.aisec.codyze.AnalysisProject
 import de.fraunhofer.aisec.codyze.AnalysisResult
+import de.fraunhofer.aisec.codyze.console.ConsoleService
+import de.fraunhofer.aisec.codyze.console.startConsole
 import de.fraunhofer.aisec.confirmate.integration.ClouditorClient
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.concepts.TagOverlaysPass
@@ -33,6 +35,8 @@ fun evaluateWithCodyze(
     result.translationResult.benchmarkResults.print()
 
     runBlocking { ClouditorClient().sendClouditorResults(result) }
+
+    ConsoleService.fromAnalysisResult(result).startConsole()
 
     return result
 }
