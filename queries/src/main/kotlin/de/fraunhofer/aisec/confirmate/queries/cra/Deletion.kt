@@ -5,6 +5,7 @@ package de.fraunhofer.aisec.confirmate.queries.cra
 
 import de.fraunhofer.aisec.confirmate.integration.AssessesMetrics
 import de.fraunhofer.aisec.confirmate.integration.RepresentsEvidences
+import de.fraunhofer.aisec.confirmate.queries.DatabaseQueryWithInput
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.Forward
@@ -85,15 +86,25 @@ fun deleteDatabaseEntriesOnAllPaths(
     }
 
 fun DatabaseQuery.deletesData(triggeringUser: Identity?): Boolean {
-    // TODO: How do I figure out what is happening in this query?
-    return this.calls.any { call -> "delete" in call } &&
-        dataFlow(
-                startNode = this,
-                type = May,
-                direction = Backward(GraphToFollow.DFG),
-                predicate = { it == triggeringUser },
-            )
-            .value
+    return this.calls?.any { call -> "delete" in call } == true &&
+        (this is DatabaseQueryWithInput &&
+            this.parameters.any { param ->
+                param == triggeringUser ||
+                    dataFlow(
+                            startNode = param,
+                            type = May,
+                            direction = Backward(GraphToFollow.DFG),
+                            predicate = { it == triggeringUser },
+                        )
+                        .value
+            } ||
+            dataFlow(
+                    startNode = this,
+                    type = May,
+                    direction = Backward(GraphToFollow.DFG),
+                    predicate = { it == triggeringUser },
+                )
+                .value)
 }
 
 fun deleteDatabaseEntriesOnAllPaths(
