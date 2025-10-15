@@ -40,13 +40,21 @@ project {
                     "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
 
                 fulfilledBy {
-                    authorizationAtEndpoint().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
-                            authorizationBeforeCriticalFunctionality().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
-                            authenticationAtEndpoint().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
-                            authenticationBeforeCriticalFunctionality().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67") and
-
-                            
-                            loggingOnSecurityErrors().withMetricId("AnomalyDetectionOutput").withEvidenceId("E67")
+                    authorizationAtEndpoint(authorizationSelector)
+                        .withMetricId("AnomalyDetectionEnabled")
+                        .withEvidenceId("E67") and
+                        authorizationBeforeCriticalFunctionality(authorizationSelector)
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        authenticationAtEndpoint(authenticationSelector)
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        authenticationBeforeCriticalFunctionality(authenticationSelector)
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        loggingOnSecurityErrors(authenticationSelector, authorizationSelector)
+                            .withMetricId("AnomalyDetectionOutput")
+                            .withEvidenceId("E67")
                 }
             }
 
