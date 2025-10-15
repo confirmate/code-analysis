@@ -71,8 +71,8 @@ fun TLS1_2.checkTLS12Configuration(
             val ciphersuiteAllowed = cipherSuite.isCipherSuiteAccepted(acceptedCipherSuites)
 
             if (
-                cipherSuite.ciphersuiteName.startsWith("TLS_ECDHE") ||
-                    cipherSuite.ciphersuiteName.startsWith("TLS_DHE")
+                cipherSuite.ciphersuiteName?.startsWith("TLS_ECDHE") == true ||
+                    cipherSuite.ciphersuiteName?.startsWith("TLS_DHE") == true
             ) {
                 val supportedGroupsOk = cipherSuite.checkSupportedGroups(acceptedSupportedGroups)
                 ciphersuiteAllowed and supportedGroupsOk
@@ -92,14 +92,15 @@ fun TLS1_3.usesOnlyRecommendedCipherSuites(
 ): QueryTree<Boolean> =
     this.cipherSuites
         ?.map { suite ->
-            val isRecommendedSuite = suite.name.toString() in recommendedCipherSuites
+            val isRecommendedSuite =
+                suite != null && suite.name.toString() in recommendedCipherSuites
             QueryTree(
                 value = isRecommendedSuite,
                 stringRepresentation =
                     if (isRecommendedSuite) {
                         "TLS 1.3 cipher suite ${suite.name} is recommended"
                     } else {
-                        "TLS 1.3 cipher suite ${suite.name} is NOT recommended. Should be one of $recommendedCipherSuites"
+                        "TLS 1.3 cipher suite ${suite?.name} is NOT recommended. Should be one of $recommendedCipherSuites"
                     },
                 node = suite,
                 operator = GenericQueryOperators.EVALUATE,

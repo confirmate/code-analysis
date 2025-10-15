@@ -121,6 +121,14 @@ project {
             }
 
             requirement {
+                name = "X.1.1.12"
+                description =
+                    "Products with digital elements shall be designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
+
+                fulfilledBy { relevantDataFlowToBackup() }
+            }
+
+            requirement {
                 name = "X.1.1.13"
                 description =
                     " Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
