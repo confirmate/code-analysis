@@ -134,7 +134,7 @@ fun relevantActivityHasLogging(
             startNode = relevantActivity,
             direction = Backward(GraphToFollow.EOG),
             type = Must,
-            scope = Interprocedural(),
+            scope = Interprocedural(maxSteps = 100),
             predicate = { node -> node is LogWriteWithArguments && node.isLevelEnabled },
         )
     }
@@ -173,14 +173,16 @@ fun relevantActivityHasLoggingWithMeaningfulMessage(
  */
 val LogWriteWithArguments.isLevelEnabled: Boolean
     get() {
-        return this.logLevelE >= this.concept.logLevelThreshold
+        return this.logLevel != null &&
+            this.concept.logLevelThreshold != null &&
+            this.logLevel!! >= this.concept.logLevelThreshold
     }
 
 /**
  * Checks if the message constructed by [arguments] is meaningful for the [relevantActivity]. I.e.,
  * it should reflect which activity was performed.
  */
-fun messageMatchesActivity(arguments: List<Node>, relevantActivity: Node): Boolean {
+fun messageMatchesActivity(arguments: List<Node?>, relevantActivity: Node): Boolean {
     // TODO: Maybe use an AI agent to decide if the message constructed by the arguments is
     // meaningful for the activity.
     return true
@@ -195,7 +197,7 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
         val timestampField =
             setOf<Node>() // logWrite.concept.logFields.filter{ it is LogTimestamp }
         val argumentHasTimestamp =
-            logWrite.logArguments.map {
+            logWrite.logArguments.filterNotNull().map {
                 dataFlow(
                     startNode = it,
                     direction = Backward(GraphToFollow.DFG),
@@ -227,7 +229,7 @@ context(translationResult: TranslationResult)
 fun logEntriesContainInitiator(): QueryTree<Boolean> {
     return translationResult.allExtended<LogWriteWithArguments> { logWrite ->
         val argumentContainsInitiator =
-            logWrite.logArguments.map {
+            logWrite.logArguments.filterNotNull().map {
                 dataFlow(
                     startNode = it,
                     direction = Backward(GraphToFollow.DFG),
