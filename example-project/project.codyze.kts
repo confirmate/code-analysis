@@ -35,6 +35,19 @@ project {
     requirements {
         category("CRA") {
             requirement {
+                name = "X.1.1.2"
+                description =
+                    "Products with digital elements shall be made available on the market without known exploitable vulnerabilities;"
+
+                fulfilledBy {
+                    OWASPTop10Scanner()
+                        .scanAll()
+                        .withMetricId("VulnerabilityScanReportUpdated")
+                        .withEvidenceId("E53")
+                }
+            }
+
+            requirement {
                 name = "X.1.1.6"
                 description =
                     "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"

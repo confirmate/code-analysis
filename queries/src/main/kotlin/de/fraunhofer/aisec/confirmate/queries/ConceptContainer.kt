@@ -190,6 +190,13 @@ class LoggingWithLevel(
         underlyingNode,
     )
 
+class InputValidation(
+    val input: Node?,
+    val validatedOutput: Node?,
+    concept: Concept,
+    underlyingNode: Node?,
+) : Operation(concept, underlyingNode)
+
 class LogWriteWithArguments(
     val logArguments: List<Node?>,
     logLevel: LogLevel?,
