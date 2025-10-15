@@ -40,10 +40,10 @@ project {
                     "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
 
                 fulfilledBy {
-                    authorizationAtEndpoint(authorizationSelector)
+                    authorizationAtEndpoint(authorizationSelector, criticalSelector)
                         .withMetricId("AnomalyDetectionEnabled")
                         .withEvidenceId("E67") and
-                        authorizationBeforeCriticalFunctionality(authorizationSelector)
+                        authorizationBeforeCriticalFunctionality(authorizationSelector, criticalSelector)
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
                         authenticationAtEndpoint(authenticationSelector)
@@ -54,7 +54,14 @@ project {
                             .withEvidenceId("E67") and
                         loggingOnSecurityErrors(authenticationSelector, authorizationSelector)
                             .withMetricId("AnomalyDetectionOutput")
-                            .withEvidenceId("E67")
+                            .withEvidenceId("E67") and
+                            adminAuthenticationMFA()
+                                .withMetricId("AdminMFAEnabled")
+                                .withEvidenceId("E62") and
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                                .withEvidenceId("E62")
+                                .withEvidenceId("E63")
                 }
             }
 
