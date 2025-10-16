@@ -6,9 +6,20 @@ package de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities
 import de.fraunhofer.aisec.confirmate.queries.InputValidation
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
+import de.fraunhofer.aisec.confirmate.queries.cra.adminAuthenticationWithMFA
+import de.fraunhofer.aisec.confirmate.queries.cra.anomalyDetectionEnabled
+import de.fraunhofer.aisec.confirmate.queries.cra.authenticationAtEndpoint
+import de.fraunhofer.aisec.confirmate.queries.cra.authenticationBeforeCriticalFunctionality
+import de.fraunhofer.aisec.confirmate.queries.cra.authenticationSelector
+import de.fraunhofer.aisec.confirmate.queries.cra.authorizationAtEndpoint
+import de.fraunhofer.aisec.confirmate.queries.cra.authorizationBeforeCriticalFunctionality
+import de.fraunhofer.aisec.confirmate.queries.cra.authorizationSelector
+import de.fraunhofer.aisec.confirmate.queries.cra.criticalSelector
+import de.fraunhofer.aisec.confirmate.queries.cra.identityPasswordPolicyEnabled
 import de.fraunhofer.aisec.confirmate.queries.cra.logEntriesContainInitiator
 import de.fraunhofer.aisec.confirmate.queries.cra.logEntriesHaveTimestamp
 import de.fraunhofer.aisec.confirmate.queries.cra.loggingEnabledByDefault
+import de.fraunhofer.aisec.confirmate.queries.cra.loggingOnSecurityErrors
 import de.fraunhofer.aisec.confirmate.queries.cra.loggingOptOut
 import de.fraunhofer.aisec.confirmate.queries.cra.relevantActivityHasLogging
 import de.fraunhofer.aisec.cpg.TranslationResult
@@ -56,13 +67,14 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
      */
     context(translationResult: TranslationResult)
     fun brokenAccessControl(): QueryTree<Boolean> {
-        return QueryTree(
-            value = true,
-            stringRepresentation =
-                "The access control mechanisms and identification and authentication mechanisms are in place and are already checked by requirement 1.5.",
-            node = null,
-            operator = GenericQueryOperators.EVALUATE,
-        )
+        return authorizationAtEndpoint(::authorizationSelector) and
+            identityPasswordPolicyEnabled() and
+            authorizationBeforeCriticalFunctionality(::authorizationSelector, ::criticalSelector) and
+            authenticationAtEndpoint(::authenticationSelector) and
+            authenticationBeforeCriticalFunctionality(::authenticationSelector, ::criticalSelector) and
+            loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector) and adminAuthenticationWithMFA(::authenticationSelector) and
+            identityPasswordPolicyEnabled() and
+            anomalyDetectionEnabled()
     }
 
     /**

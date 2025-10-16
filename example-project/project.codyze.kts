@@ -51,40 +51,43 @@ project {
                     }
                 }
             }
-            
+
             requirement {
                 name = "X.1.1.5"
                 description =
                     "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
 
                 fulfilledBy {
-                    authorizationAtEndpoint(authorizationSelector, criticalSelector)
+                    authorizationAtEndpoint(::authorizationSelector)
                         .withMetricId("AnomalyDetectionEnabled")
+                        .withEvidenceId("E67")
                     identityPasswordPolicyEnabled()
                         .withMetricId("IdentityPasswordPolicyEnabled")
-                        .withEvidenceId("E62")
-                        .withEvidenceId("E63")
-                        .withEvidenceId("E67") and
-                        authorizationBeforeCriticalFunctionality(authorizationSelector, criticalSelector)
+                        .withEvidenceId("E62") and
+                        authorizationBeforeCriticalFunctionality(
+                                ::authorizationSelector,
+                                ::criticalSelector,
+                            )
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
-                        authenticationAtEndpoint(authenticationSelector)
+                        authenticationAtEndpoint(::authenticationSelector)
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
-                        authenticationBeforeCriticalFunctionality(authenticationSelector)
+                        authenticationBeforeCriticalFunctionality(::authenticationSelector, ::criticalSelector)
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
-                        loggingOnSecurityErrors(authenticationSelector, authorizationSelector)
+                        loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
                             .withMetricId("AnomalyDetectionOutput")
                             .withEvidenceId("E67") and
-                            adminAuthenticationMFA()
-                                .withMetricId("AdminMFAEnabled")
-                                .withEvidenceId("E62") and
-                            identityPasswordPolicyEnabled()
-                                .withMetricId("IdentityPasswordPolicyEnabled")
-                                .withEvidenceId("E62")
-                                .withEvidenceId("E63") and
-                            anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled").withEvidenceId("E67")
+                        adminAuthenticationWithMFA(::authenticationSelector)
+                            .withMetricId("AdminMFAEnabled")
+                            .withEvidenceId("E62") and
+                        identityPasswordPolicyEnabled()
+                            .withMetricId("IdentityPasswordPolicyEnabled")
+                            .withEvidenceId("E62") and
+                        anomalyDetectionEnabled()
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67")
                 }
             }
 
@@ -99,9 +102,9 @@ project {
                             .withMetricId("AtRestEncryptionEnabled")
                             .withEvidenceId("E70") and
                             dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
-                                identityPasswordPolicyEnabled()
-                                    .withMetricId("IdentityPasswordPolicyEnabled")
-                                    .withEvidenceId("E63")
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                                .withEvidenceId("E63")
                     }
                 }
             }
@@ -122,9 +125,9 @@ project {
                                 },
                             )
                             .withMetricId("InTransitEncryptionEnabled") and
-                                identityPasswordPolicyEnabled()
-                                    .withMetricId("IdentityPasswordPolicyEnabled")
-                                    .withEvidenceId("E63")
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                                .withEvidenceId("E63")
                     }
                 }
             }
