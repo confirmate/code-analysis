@@ -53,6 +53,45 @@ project {
             }
 
             requirement {
+                name = "X.1.1.5"
+                description =
+                    "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
+
+                fulfilledBy {
+                    authorizationAtEndpoint(::authorizationSelector)
+                        .withMetricId("AnomalyDetectionEnabled")
+                        .withEvidenceId("E67")
+                    identityPasswordPolicyEnabled()
+                        .withMetricId("IdentityPasswordPolicyEnabled")
+                        .withEvidenceId("E62") and
+                        authorizationBeforeCriticalFunctionality(
+                                ::authorizationSelector,
+                                ::criticalSelector,
+                            )
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        authenticationAtEndpoint(::authenticationSelector)
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        authenticationBeforeCriticalFunctionality(::authenticationSelector, ::criticalSelector)
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67") and
+                        loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
+                            .withMetricId("AnomalyDetectionOutput")
+                            .withEvidenceId("E67") and
+                        adminAuthenticationWithMFA(::authenticationSelector)
+                            .withMetricId("AdminMFAEnabled")
+                            .withEvidenceId("E62") and
+                        identityPasswordPolicyEnabled()
+                            .withMetricId("IdentityPasswordPolicyEnabled")
+                            .withEvidenceId("E62") and
+                        anomalyDetectionEnabled()
+                            .withMetricId("AnomalyDetectionEnabled")
+                            .withEvidenceId("E67")
+                }
+            }
+
+            requirement {
                 name = "X.1.1.6"
                 description =
                     "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"
@@ -62,7 +101,10 @@ project {
                         dataEncryptedBeforePersisting()
                             .withMetricId("AtRestEncryptionEnabled")
                             .withEvidenceId("E70") and
-                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled")
+                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                                .withEvidenceId("E63")
                     }
                 }
             }
@@ -82,7 +124,10 @@ project {
                                     false /* We do not know this, so let's fail to enforce a manual check. */
                                 },
                             )
-                            .withMetricId("InTransitEncryptionEnabled")
+                            .withMetricId("InTransitEncryptionEnabled") and
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                                .withEvidenceId("E63")
                     }
                 }
             }
