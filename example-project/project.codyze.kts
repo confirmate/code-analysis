@@ -90,7 +90,12 @@ project {
                             .withEvidenceId("E62") and
                         anomalyDetectionEnabled()
                             .withMetricId("AnomalyDetectionEnabled")
-                            .withEvidenceId("E67")
+                            .withEvidenceId("E67") and
+                        with(BSI_TR02102()) {
+                            dataEncryptedBeforePersisting()
+                                .withMetricId("AtRestEncryptionEnabled")
+                                .withEvidenceId("E64")
+                        }
                 }
             }
 
