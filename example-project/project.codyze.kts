@@ -73,7 +73,10 @@ project {
                         authenticationAtEndpoint(::authenticationSelector)
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
-                        authenticationBeforeCriticalFunctionality(::authenticationSelector, ::criticalSelector)
+                        authenticationBeforeCriticalFunctionality(
+                                ::authenticationSelector,
+                                ::criticalSelector,
+                            )
                             .withMetricId("AnomalyDetectionEnabled")
                             .withEvidenceId("E67") and
                         loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
@@ -129,6 +132,18 @@ project {
                                 .withMetricId("IdentityPasswordPolicyEnabled")
                                 .withEvidenceId("E63")
                     }
+                }
+            }
+
+            requirement {
+                name = "X.1.1.9"
+                description =
+                    "Products with digital elements shall protect the availability of essential and basic functions, also after an incident, including through resilience and mitigation measures against denial-of-service attacks;"
+
+                fulfilledBy {
+                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting())
+                        .withMetricId("DDOSMechanismActivated")
+                        .withEvidenceId("E86")
                 }
             }
 
