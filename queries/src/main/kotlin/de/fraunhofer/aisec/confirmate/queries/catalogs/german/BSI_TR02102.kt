@@ -3,7 +3,15 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.german
 
+import de.fraunhofer.aisec.confirmate.queries.HashFunction
 import de.fraunhofer.aisec.confirmate.queries.HybridCipher
+import de.fraunhofer.aisec.confirmate.queries.SHA3_256
+import de.fraunhofer.aisec.confirmate.queries.SHA3_384
+import de.fraunhofer.aisec.confirmate.queries.SHA3_512
+import de.fraunhofer.aisec.confirmate.queries.SHA_256
+import de.fraunhofer.aisec.confirmate.queries.SHA_384
+import de.fraunhofer.aisec.confirmate.queries.SHA_512
+import de.fraunhofer.aisec.confirmate.queries.SHA_512_256
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.TLS1_2
 import de.fraunhofer.aisec.confirmate.queries.TLS1_3
@@ -66,9 +74,20 @@ class BSI_TR02102 : RequirementsCatalog(), CryptoCatalog, TLSCatalog {
         TODO()
     }
 
-    context(cipher: Cipher)
+    context(hashFunction: HashFunction)
     override fun checkHashFunction(): QueryTree<Boolean> {
-        TODO()
+        val secureFunctions = listOf(SHA_256::class, SHA_384::class, SHA_512::class, SHA_512_256::class, SHA3_256::class, SHA3_384::class, SHA3_512::class)
+        val isValid = secureFunctions.any{
+            it.isInstance(hashFunction)
+        }
+        return QueryTree(
+            value = isValid,
+            stringRepresentation =
+                if (isValid) "The hash function ${hashFunction.hashFunctionName} is considered secure."
+                else "The hash function ${hashFunction.hashFunctionName} is not considered secure. Should be one of ${secureFunctions.map { cls -> cls.simpleName }}.",
+            node = hashFunction,
+            operator = GenericQueryOperators.EVALUATE,
+        )
     }
 
     context(cipher: TransportEncryption)
