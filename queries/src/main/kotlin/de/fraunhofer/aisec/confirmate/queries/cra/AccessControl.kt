@@ -194,7 +194,7 @@ context(translationResult: TranslationResult)
 fun anomalyDetectionEnabled(): QueryTree<Boolean> {
     return translationResult.allExtended<AnomalyDetection> { node ->
         QueryTree<Boolean>(
-            value = node.enabled,
+            value = node.enabled == true,
             stringRepresentation = "Anomaly detection ${node.name} is enabled",
             node = node,
             operator = GenericQueryOperators.EVALUATE,

@@ -69,10 +69,17 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
     fun brokenAccessControl(): QueryTree<Boolean> {
         return authorizationAtEndpoint(::authorizationSelector) and
             identityPasswordPolicyEnabled() and
-            authorizationBeforeCriticalFunctionality(::authorizationSelector, ::criticalSelector) and
+            authorizationBeforeCriticalFunctionality(
+                ::authorizationSelector,
+                ::criticalSelector,
+            ) and
             authenticationAtEndpoint(::authenticationSelector) and
-            authenticationBeforeCriticalFunctionality(::authenticationSelector, ::criticalSelector) and
-            loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector) and adminAuthenticationWithMFA(::authenticationSelector) and
+            authenticationBeforeCriticalFunctionality(
+                ::authenticationSelector,
+                ::criticalSelector,
+            ) and
+            loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector) and
+            adminAuthenticationWithMFA(::authenticationSelector) and
             identityPasswordPolicyEnabled() and
             anomalyDetectionEnabled()
     }
