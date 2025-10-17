@@ -87,7 +87,11 @@ class HybridCipher(
     var hashFunction: HashFunction? = null
 }
 
-open class HashFunction(var hashFunctionName: String? = null, var outputSize: Int? = null, underlyingNode: Node?) : Concept(underlyingNode)
+open class HashFunction(
+    var hashFunctionName: String? = null,
+    var outputSize: Int? = null,
+    underlyingNode: Node?,
+) : Concept(underlyingNode)
 
 open class TLS(
     versionNumber: Float,
@@ -263,10 +267,27 @@ class ExtendedHttpEndpoint(
         underlyingNode,
     )
 
-class SHA_256(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA-256", outputSize = 256, underlyingNode = underlyingNode)
-class SHA_384(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA-284", outputSize = 384, underlyingNode = underlyingNode)
-class SHA_512(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA-512", outputSize = 512, underlyingNode = underlyingNode)
-class SHA_512_256(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA-512/256", outputSize = 256, underlyingNode = underlyingNode)
-class SHA3_256(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA3-256", outputSize = 256, underlyingNode = underlyingNode)
-class SHA3_384(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA3-384", outputSize = 384, underlyingNode = underlyingNode)
-class SHA3_512(underlyingNode: Node?): HashFunction(hashFunctionName = "SHA3-512", outputSize = 512, underlyingNode = underlyingNode)
+class SHA_256(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-256", outputSize = 256, underlyingNode = underlyingNode)
+
+class SHA_384(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-284", outputSize = 384, underlyingNode = underlyingNode)
+
+class SHA_512(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-512", outputSize = 512, underlyingNode = underlyingNode)
+
+class SHA_512_256(underlyingNode: Node?) :
+    HashFunction(
+        hashFunctionName = "SHA-512/256",
+        outputSize = 256,
+        underlyingNode = underlyingNode,
+    )
+
+class SHA3_256(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-256", outputSize = 256, underlyingNode = underlyingNode)
+
+class SHA3_384(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-384", outputSize = 384, underlyingNode = underlyingNode)
+
+class SHA3_512(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-512", outputSize = 512, underlyingNode = underlyingNode)

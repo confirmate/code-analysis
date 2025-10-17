@@ -3,6 +3,7 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities
 
+import de.fraunhofer.aisec.confirmate.queries.HashFunction
 import de.fraunhofer.aisec.confirmate.queries.InputValidation
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
@@ -96,8 +97,11 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
             translationResult.allExtended<Cipher> {
                 with(it) {
                     cryptoCatalog
-                        .checkAsymmetricEncryption() /* and cryptoCatalog.checkKeyExchange() and cryptoCatalog.checkPQCEncryption() and cryptoCatalog.checkHashFunction() */
+                        .checkAsymmetricEncryption() /* and cryptoCatalog.checkKeyExchange() and cryptoCatalog.checkPQCEncryption() */
                 }
+            } and
+            translationResult.allExtended<HashFunction> {
+                with(it) { cryptoCatalog.checkHashFunction() }
             }
     }
 

@@ -76,15 +76,24 @@ class BSI_TR02102 : RequirementsCatalog(), CryptoCatalog, TLSCatalog {
 
     context(hashFunction: HashFunction)
     override fun checkHashFunction(): QueryTree<Boolean> {
-        val secureFunctions = listOf(SHA_256::class, SHA_384::class, SHA_512::class, SHA_512_256::class, SHA3_256::class, SHA3_384::class, SHA3_512::class)
-        val isValid = secureFunctions.any{
-            it.isInstance(hashFunction)
-        }
+        val secureFunctions =
+            listOf(
+                SHA_256::class,
+                SHA_384::class,
+                SHA_512::class,
+                SHA_512_256::class,
+                SHA3_256::class,
+                SHA3_384::class,
+                SHA3_512::class,
+            )
+        val isValid = secureFunctions.any { it.isInstance(hashFunction) }
         return QueryTree(
             value = isValid,
             stringRepresentation =
-                if (isValid) "The hash function ${hashFunction.hashFunctionName} is considered secure."
-                else "The hash function ${hashFunction.hashFunctionName} is not considered secure. Should be one of ${secureFunctions.map { cls -> cls.simpleName }}.",
+                if (isValid)
+                    "The hash function ${hashFunction.hashFunctionName} is considered secure."
+                else
+                    "The hash function ${hashFunction.hashFunctionName} is not considered secure. Should be one of ${secureFunctions.map { cls -> cls.simpleName }}.",
             node = hashFunction,
             operator = GenericQueryOperators.EVALUATE,
         )
