@@ -124,14 +124,6 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
             logEntriesContainInitiator().withMetricId("IdentityRecentActivity") and
             loggingOptOut { false /* There's no opt-out mechanism we can identify. */ } and
             loggingEnabledByDefault()
-
-        /*return QueryTree(
-            value = true,
-            stringRepresentation =
-                "The application has sufficient logging and monitoring mechanisms in place. This is already checked by requirement 1.14.",
-            node = null,
-            operator = GenericQueryOperators.EVALUATE,
-        )*/
     }
 
     /**
