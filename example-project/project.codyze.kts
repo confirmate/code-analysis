@@ -38,6 +38,14 @@ project {
         false
     }
 
+    val relevantActivities: (Node) -> Boolean = {
+        it is FileOperation ||
+            it is DatabaseOperation ||
+            it is HttpClientOperation ||
+            it is AuthenticationOperation
+        /* TODO: No modifications to settings possible yet */
+    }
+
     requirements {
         category("CRA") {
             requirement {
@@ -116,13 +124,7 @@ project {
                     " Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
 
                 fulfilledBy {
-                    relevantActivityHasLogging({
-                            it is FileOperation ||
-                                it is DatabaseOperation ||
-                                it is HttpClientOperation ||
-                                it is
-                                    AuthenticationOperation /* TODO: No modifications to settings possible yet*/
-                        })
+                    relevantActivityHasLogging({ relevantActivities(it) })
                         .withMetricId("ActivityLoggingEnabled")
                         .withEvidenceId("E99") and
                         logEntriesHaveTimestamp() and
