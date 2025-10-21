@@ -61,7 +61,32 @@ import de.fraunhofer.aisec.cpg.query.or
  *   2025-01](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR02102/BSI-TR-02102-2.pdf?__blob=publicationFile&v=11)
  *   regarding TLS
  */
-class BSI_TR02102 : RequirementsCatalog(), CryptoCatalog, TLSCatalog {
+class BSI_TR02102(override val requirePQC: Boolean = false) :
+    RequirementsCatalog(), CryptoCatalog, TLSCatalog {
+
+    context(cipher: Cipher)
+    fun checkKeyEncapsulation(): QueryTree<Boolean> {
+        return listOf(
+                "FrodoKEM-976",
+                "FrodoKEM-1344",
+                "mceliece460896",
+                "mceliece6688128",
+                "mceliece8192128",
+                "mceliece460896f",
+                "mceliece6688128f",
+                "mceliece8192128f",
+                "ML-KEM-768",
+                "ML-KEM-1024",
+            )
+            .map { accepted -> accepted eq cipher.cipherName }
+            .mergeWithAny()
+            .apply {
+                this.stringRepresentation =
+                    if (this.value) "This is a KEM which is considered as post-quantum secure."
+                    else "This is not a KEM which is considered as post-quantum secure."
+            }
+    }
+
     context(cipher: SymmetricCipher)
     override fun checkSymmetricEncryption(): QueryTree<Boolean> {
         return cipher.checkAES()
@@ -69,12 +94,18 @@ class BSI_TR02102 : RequirementsCatalog(), CryptoCatalog, TLSCatalog {
 
     context(cipher: Cipher)
     override fun checkAsymmetricEncryption(): QueryTree<Boolean> {
+        if (requirePQC) return emptyList<QueryTree<Boolean>>().mergeWithAny()
+
         return listOf(cipher.checkRSA(), cipher.checkDLIES(), cipher.checkECIES()).mergeWithAny()
     }
 
     context(cipher: Cipher)
     override fun checkKeyExchange(): QueryTree<Boolean> {
-        return cipher.checkDhKeyExchange() or cipher.checkEcdhKeyExchange()
+        if (requirePQC) return checkKeyEncapsulation()
+
+        return cipher.checkDhKeyExchange() or
+            cipher.checkEcdhKeyExchange() or
+            checkKeyEncapsulation()
     }
 
     fun Cipher.checkDhKeyExchange(): QueryTree<Boolean> {
@@ -159,10 +190,6 @@ class BSI_TR02102 : RequirementsCatalog(), CryptoCatalog, TLSCatalog {
     context(cipher: TransportEncryption)
     override fun checkTLS(): QueryTree<Boolean> {
         return cipher.checkTLS1_2() or cipher.checkTLS1_3()
-    }
-
-    override fun checkPQCEncryption(): QueryTree<Boolean> {
-        TODO("Not yet implemented")
     }
 
     // Symmetric encryption algorithms, their modus, and recommended key lengths. There are also

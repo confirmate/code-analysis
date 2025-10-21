@@ -23,6 +23,8 @@ abstract class RequirementsCatalog
  * such an interpretation.
  */
 interface CryptoCatalog {
+    val requirePQC: Boolean
+
     context(cipher: SymmetricCipher)
     fun checkSymmetricEncryption(): QueryTree<Boolean>
 
@@ -34,8 +36,6 @@ interface CryptoCatalog {
 
     context(hashFunction: HashFunction)
     fun checkHashFunction(): QueryTree<Boolean>
-
-    fun checkPQCEncryption(): QueryTree<Boolean>
 }
 
 interface TLSCatalog {
