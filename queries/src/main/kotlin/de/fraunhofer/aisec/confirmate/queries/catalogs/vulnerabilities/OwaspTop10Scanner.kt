@@ -5,6 +5,7 @@ package de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities
 
 import de.fraunhofer.aisec.confirmate.queries.HashFunction
 import de.fraunhofer.aisec.confirmate.queries.InputValidation
+import de.fraunhofer.aisec.confirmate.queries.Signature
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
 import de.fraunhofer.aisec.confirmate.queries.cra.adminAuthenticationWithMFA
@@ -107,7 +108,10 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
             } and
             translationResult.allExtended<MessageAuthenticationCode> {
                 with(it) { cryptoCatalog.checkMAC() }
-            }
+            } and
+                translationResult.allExtended<Signature> {
+                    with(it) { cryptoCatalog.checkSignature() }
+                }
     }
 
     /**
