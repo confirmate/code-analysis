@@ -215,8 +215,10 @@ project {
                         loggingOptOut {
                             false /* There's no opt-out mechanism we can identify. */
                         } and
-                        loggingEnabledByDefault() /* and
-                                                  loggedDataAvailableToUser().withMetricId("SecurityDataAvailableToUser").withEvidenceId("E97")*/
+                        loggingEnabledByDefault() and
+                        loggedDataAvailableToUser({ false }, { false })
+                            .withMetricId("SecurityDataAvailableToUser")
+                            .withEvidenceId("E97")
                 }
             }
 
