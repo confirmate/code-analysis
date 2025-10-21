@@ -271,75 +271,118 @@ class BSI_TR02102(override val requirePQC: Boolean = false) :
         )
     }
 
-    context(mac: MessageAuthenticationCode)
-    override fun checkMAC(): QueryTree<Boolean> {
-        // CMAC and GMAC require secure block cipher
-        if (mac is CMAC) {
+    fun MessageAuthenticationCode.checkCmac(): QueryTree<Boolean> {
+        if (this is CMAC) {
+            // CMAC requires a secure block cipher
             return QueryTree(
                 value = true,
                 stringRepresentation = "CMACs are ok.",
-                node = mac,
+                node = this,
                 operator = GenericQueryOperators.EVALUATE,
             ) and
-                ((mac.cipher as? SymmetricCipher)?.let { with(it) { checkSymmetricEncryption() } }
+                ((this.cipher as? SymmetricCipher)?.let { with(it) { checkSymmetricEncryption() } }
                     ?: QueryTree(
                         false,
                         stringRepresentation = "Could not find symmetric cipher for CMAC",
-                        node = mac,
+                        node = this,
                         operator = GenericQueryOperators.EVALUATE,
                     ))
-        } else if (mac is GMAC) {
+        }
+        return QueryTree(
+            value = false,
+            stringRepresentation = "Not a CMAC signature",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    }
+
+    fun MessageAuthenticationCode.checkGmac(): QueryTree<Boolean> {
+        if (this is GMAC) {
+            // GMAC requires a secure block cipher
             return QueryTree(
                 value = true,
                 stringRepresentation = "GMACs are ok.",
-                node = mac,
+                node = this,
                 operator = GenericQueryOperators.EVALUATE,
             ) and
-                ((mac.cipher as? SymmetricCipher)?.let { with(it) { checkSymmetricEncryption() } }
+                ((this.cipher as? SymmetricCipher)?.let { with(it) { checkSymmetricEncryption() } }
                     ?: QueryTree(
                         false,
                         stringRepresentation = "Could not find symmetric cipher for GMAC",
-                        node = mac,
-                        operator = GenericQueryOperators.EVALUATE,
-                    ))
-        } else if (mac is HMAC) {
-            // HMAC requires secure hash function
-            return QueryTree(
-                value = true,
-                stringRepresentation = "HMACs are ok.",
-                node = mac,
-                operator = GenericQueryOperators.EVALUATE,
-            ) and
-                (mac.hashFunction?.let { with(it) { checkHashFunction() } }
-                    ?: QueryTree(
-                        false,
-                        stringRepresentation = "Could not find hash function for HMAC",
-                        node = mac,
-                        operator = GenericQueryOperators.EVALUATE,
-                    ))
-        } else if (mac is KMAC) {
-            return QueryTree(
-                value = true,
-                stringRepresentation = "KMACs are ok.",
-                node = mac,
-                operator = GenericQueryOperators.EVALUATE,
-            ) and
-                ((mac.strength eq 128) or (mac.strength eq 256)) and
-                (mac.hashFunction?.let { with(it) { checkHashFunction() } }
-                    ?: QueryTree(
-                        false,
-                        stringRepresentation = "Could not find hash function for KMAC",
-                        node = mac,
+                        node = this,
                         operator = GenericQueryOperators.EVALUATE,
                     ))
         }
 
         return QueryTree(
             value = false,
-            stringRepresentation = "No valid/secure MAC scheme found",
-            node = mac,
+            stringRepresentation = "Not a GMAC signature",
+            node = this,
             operator = GenericQueryOperators.EVALUATE,
         )
+    }
+
+    fun MessageAuthenticationCode.checkHmac(): QueryTree<Boolean> {
+        if (this is HMAC) {
+            // HMAC requires secure hash function
+            return QueryTree(
+                value = true,
+                stringRepresentation = "HMACs are ok.",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            ) and
+                (this.hashFunction?.let { with(it) { checkHashFunction() } }
+                    ?: QueryTree(
+                        false,
+                        stringRepresentation = "Could not find hash function for HMAC",
+                        node = this,
+                        operator = GenericQueryOperators.EVALUATE,
+                    ))
+        }
+
+        return QueryTree(
+            value = false,
+            stringRepresentation = "Not a HMAC signature",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    }
+
+    fun MessageAuthenticationCode.checkKmac(): QueryTree<Boolean> {
+        if (this is KMAC) {
+            return QueryTree(
+                value = true,
+                stringRepresentation = "KMACs are ok.",
+                node = this,
+                operator = GenericQueryOperators.EVALUATE,
+            ) and
+                ((this.strength eq 128) or (this.strength eq 256)) and
+                (this.hashFunction?.let { with(it) { checkHashFunction() } }
+                    ?: QueryTree(
+                        false,
+                        stringRepresentation = "Could not find hash function for KMAC",
+                        node = this,
+                        operator = GenericQueryOperators.EVALUATE,
+                    ))
+        }
+
+        return QueryTree(
+            value = false,
+            stringRepresentation = "Not a HMAC signature",
+            node = this,
+            operator = GenericQueryOperators.EVALUATE,
+        )
+    }
+
+    context(mac: MessageAuthenticationCode)
+    override fun checkMAC(): QueryTree<Boolean> {
+        return listOf(mac.checkCmac(), mac.checkGmac(), mac.checkHmac(), mac.checkKmac())
+            .mergeWithAny()
+            .apply {
+                this.stringRepresentation =
+                    if (this.value) "We use a MAC which fulfils the state-of-the-art."
+                    else "We do not use a MAC which fulfils the state-of-the-art."
+            }
     }
 
     context(cipher: Cipher)
