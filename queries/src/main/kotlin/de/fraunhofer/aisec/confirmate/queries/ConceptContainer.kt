@@ -358,3 +358,35 @@ class HMAC(val hashFunction: HashFunction?, input: Input?, key: Key?, underlying
         key = key,
         underlyingNode = underlyingNode,
     )
+
+open class Signature(val schemeName: String?, underlyingNode: Node?) :
+    Concept(underlyingNode = underlyingNode)
+
+class RSASignature(
+    val rsaCipher: AsymmetricCipher?,
+    val formattingScheme: FormattingScheme?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "RSA", underlyingNode = underlyingNode)
+
+class DSASignature(
+    val primePSize: Int?,
+    val primeQSize: Int?,
+    val hashFunction: HashFunction?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "DSA", underlyingNode = underlyingNode)
+
+class ECDSASignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val hashFunction: HashFunction?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "DSA", underlyingNode = underlyingNode)
+
+open class FormattingScheme(val schemeName: String?, underlyingNode: Node?) :
+    Concept(underlyingNode = underlyingNode)
+
+class EMSA_PSS(underlyingNode: Node?) : FormattingScheme("EMSA-PSS", underlyingNode)
+
+class DS2(underlyingNode: Node?) : FormattingScheme("DS2", underlyingNode)
+
+class DS3(underlyingNode: Node?) : FormattingScheme("DS3", underlyingNode)
