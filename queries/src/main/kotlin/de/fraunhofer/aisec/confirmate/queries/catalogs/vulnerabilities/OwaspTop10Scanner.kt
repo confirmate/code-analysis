@@ -96,8 +96,9 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
         } and
             translationResult.allExtended<Cipher> {
                 with(it) {
-                    cryptoCatalog
-                        .checkAsymmetricEncryption() /* and cryptoCatalog.checkKeyExchange() and cryptoCatalog.checkPQCEncryption() */
+                    cryptoCatalog.checkAsymmetricEncryption() and
+                        cryptoCatalog
+                            .checkKeyExchange() /* and cryptoCatalog.checkPQCEncryption() */
                 }
             } and
             translationResult.allExtended<HashFunction> {
