@@ -109,9 +109,7 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
             translationResult.allExtended<MessageAuthenticationCode> {
                 with(it) { cryptoCatalog.checkMAC() }
             } and
-                translationResult.allExtended<Signature> {
-                    with(it) { cryptoCatalog.checkSignature() }
-                }
+            translationResult.allExtended<Signature> { with(it) { cryptoCatalog.checkSignature() } }
     }
 
     /**

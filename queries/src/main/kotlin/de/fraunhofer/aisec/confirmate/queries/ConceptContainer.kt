@@ -359,28 +359,61 @@ class HMAC(val hashFunction: HashFunction?, input: Input?, key: Key?, underlying
         underlyingNode = underlyingNode,
     )
 
-open class Signature(val schemeName: String?, underlyingNode: Node?) :
+open class Signature(val schemeName: String?, val key: Key?, underlyingNode: Node?) :
     Concept(underlyingNode = underlyingNode)
 
 class RSASignature(
     val rsaCipher: AsymmetricCipher?,
     val formattingScheme: FormattingScheme?,
+    key: Key?,
     underlyingNode: Node?,
-) : Signature(schemeName = "RSA", underlyingNode = underlyingNode)
+) : Signature(schemeName = "RSA", key = key, underlyingNode = underlyingNode)
 
 class DSASignature(
     val primePSize: Int?,
     val primeQSize: Int?,
     val hashFunction: HashFunction?,
+    key: Key?,
     underlyingNode: Node?,
-) : Signature(schemeName = "DSA", underlyingNode = underlyingNode)
+) : Signature(schemeName = "DSA", key = key, underlyingNode = underlyingNode)
 
 class ECDSASignature(
     val parameter: String?,
     val algorithmName: String?,
     val hashFunction: HashFunction?,
+    key: Key?,
     underlyingNode: Node?,
-) : Signature(schemeName = "DSA", underlyingNode = underlyingNode)
+) : Signature(schemeName = "DSA", key = key, underlyingNode = underlyingNode)
+
+class SlhDsaSignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "SLH-DSA", key = key, underlyingNode = underlyingNode)
+
+class MlDsaSignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "ML-DSA", key = key, underlyingNode = underlyingNode)
+
+class StatefulHashBasedSignature(
+    val parameter: String?,
+    schemeName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = schemeName, key = key, underlyingNode = underlyingNode)
 
 open class FormattingScheme(val schemeName: String?, underlyingNode: Node?) :
     Concept(underlyingNode = underlyingNode)
@@ -390,3 +423,13 @@ class EMSA_PSS(underlyingNode: Node?) : FormattingScheme("EMSA-PSS", underlyingN
 class DS2(underlyingNode: Node?) : FormattingScheme("DS2", underlyingNode)
 
 class DS3(underlyingNode: Node?) : FormattingScheme("DS3", underlyingNode)
+
+enum class Variant {
+    Hedged,
+    Deterministic,
+}
+
+enum class Version {
+    Pure,
+    PreHash,
+}
