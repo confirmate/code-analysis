@@ -66,6 +66,28 @@ project {
                     }
                 }
             }
+            
+            requirement {
+                name = "X.1.1.3"
+                description =
+                    "Products with digital elements shall be made available on the market with a secure by default configuration, " +
+                            "unless otherwise agreed between manufacturer and business user in relation to a tailor-made product " +
+                            "with digital elements, including the possibility to reset the product to its original state;"
+
+                fulfilledBy {
+                    with(DefaultConfig()){
+                        secureConfigAlwaysUsed()
+                            .withMetricId("SecureConfigurationEnforced")
+                            .withEvidenceId("E55") and
+                                noNonConfigConstantsToSecureOperation()
+                                    .withMetricId("SecureConfigurationEnforced")
+                                    .withEvidenceId("E55") and
+                                secureValuesConfigured()
+                                    .withMetricId("SecureConfigurationEnforced")
+                                    .withEvidenceId("E55")
+                    }
+                }
+            }
 
             requirement {
                 name = "X.1.1.4"
