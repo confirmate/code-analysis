@@ -255,13 +255,53 @@ class ExtendedHttpEndpoint(
         underlyingNode,
     )
 
-
 /**
  * Represents a safeguard applied to data to ensure data minimisation principles are followed. This
  * concept wraps various protection techniques like encryption, anonymization, pseudonymization, or
  * caching with limited retention.
  */
-class DataSafeGuard(
-    val data: Node?,
+class DataSafeGuard(val data: Node?, underlyingNode: Node?) : Concept(underlyingNode)
+
+/**
+ * Extended [DatabaseStorage] with TTL (Time-To-Live) / retention policy information.
+ */
+class DatabaseStorageWithTTL(
+    val ttlSeconds: Long?,
+    val hasAutomatedCleanup: Boolean,
+    activityLogging: ActivityLogging?,
+    atRestEncryption: Boolean?,
+    backups: MutableList<Backup?>,
+    immutability: Immutability?,
+    resourceLogging: ResourceLogging?,
+    internetAccessibleEndpoint: Boolean?,
+    geoLocation: GeoLocation?,
+    loggings: MutableList<Logging?>,
+    redundancies: Redundancy?,
+    usageStatistics: UsageStatistics?,
+    creation_time: java.time.ZonedDateTime?,
+    description: String?,
+    labels: MutableMap<String, String>?,
+    name: String?,
+    raw: String?,
+    parent: Resource?,
     underlyingNode: Node?,
-) : Concept(underlyingNode)
+) :
+    DatabaseStorage(
+        activityLogging,
+        atRestEncryption,
+        backups,
+        immutability,
+        resourceLogging,
+        internetAccessibleEndpoint,
+        geoLocation,
+        loggings,
+        redundancies,
+        usageStatistics,
+        creation_time,
+        description,
+        labels,
+        name,
+        raw,
+        parent,
+        underlyingNode,
+    )
