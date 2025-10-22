@@ -6,6 +6,7 @@ package de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities
 import de.fraunhofer.aisec.confirmate.queries.InputValidation
 import de.fraunhofer.aisec.confirmate.queries.SymmetricCipher
 import de.fraunhofer.aisec.confirmate.queries.catalogs.CryptoCatalog
+import de.fraunhofer.aisec.confirmate.queries.catalogs.configs.DefaultConfig
 import de.fraunhofer.aisec.confirmate.queries.cra.adminAuthenticationWithMFA
 import de.fraunhofer.aisec.confirmate.queries.cra.anomalyDetectionEnabled
 import de.fraunhofer.aisec.confirmate.queries.cra.authenticationAtEndpoint
@@ -21,7 +22,10 @@ import de.fraunhofer.aisec.confirmate.queries.cra.logEntriesHaveTimestamp
 import de.fraunhofer.aisec.confirmate.queries.cra.loggingEnabledByDefault
 import de.fraunhofer.aisec.confirmate.queries.cra.loggingOnSecurityErrors
 import de.fraunhofer.aisec.confirmate.queries.cra.loggingOptOut
+import de.fraunhofer.aisec.confirmate.queries.cra.noNonConfigConstantsToSecureOperation
 import de.fraunhofer.aisec.confirmate.queries.cra.relevantActivityHasLogging
+import de.fraunhofer.aisec.confirmate.queries.cra.secureConfigAlwaysUsed
+import de.fraunhofer.aisec.confirmate.queries.cra.secureValuesConfigured
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.GraphToFollow
@@ -146,12 +150,8 @@ class OwaspTop10Scanner : VulnerabilityCatalogScanner {
      */
     context(translationResult: TranslationResult)
     fun insecureConfigurations(): QueryTree<Boolean> {
-        return QueryTree(
-            value = true,
-            stringRepresentation =
-                "The application is not affected by insecure (default) configurations. This is already checked by requirement 1.3.",
-            node = null,
-            operator = GenericQueryOperators.EVALUATE,
-        )
+        return with(DefaultConfig()){
+            secureConfigAlwaysUsed() and noNonConfigConstantsToSecureOperation() and secureValuesConfigured()
+        }
     }
 }

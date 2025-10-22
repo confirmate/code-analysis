@@ -60,12 +60,17 @@ project {
                             "with digital elements, including the possibility to reset the product to its original state;"
 
                 fulfilledBy {
-                    secureConfigAlwaysUsed()
+                    with(DefaultConfig()){
+                        secureConfigAlwaysUsed()
                             .withMetricId("SecureConfigurationEnforced")
                             .withEvidenceId("E55") and
-                            noNonConfigConstantsToSecureOperation()
-                                .withMetricId("SecureConfigurationEnforced")
-                                .withEvidenceId("E55")
+                                noNonConfigConstantsToSecureOperation()
+                                    .withMetricId("SecureConfigurationEnforced")
+                                    .withEvidenceId("E55") and
+                                secureValuesConfigured()
+                                    .withMetricId("SecureConfigurationEnforced")
+                                    .withEvidenceId("E55")
+                    }
                 }
             }
 
