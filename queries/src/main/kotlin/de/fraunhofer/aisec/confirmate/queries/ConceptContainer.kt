@@ -37,13 +37,10 @@ class SymmetricCipher(
     ) {
     /** The modus of operation, e.g., "GCM", "CBC", "CCM", ... */
     var modus: String? = null
-
     /** The size of an authentication tag in bits, if present for the given [modus]. */
     var tagSize: Int? = null
-
     /** The size of the initialization vector (IV) in bits, if present for the given [modus]. */
     var ivSize: Int? = null
-
     /**
      * The initialization vector (IV) itself, if present for the given [modus]. TODO: Maybe move
      * this to the encrypt operation??
@@ -76,10 +73,11 @@ class HybridCipher(
     var hashFunction: HashFunction? = null
 }
 
-class HashFunction(underlyingNode: Node?) : Concept(underlyingNode) {
-    var hashFunctionName: String? = null
-    var outputSize: Int? = null
-}
+open class HashFunction(
+    var hashFunctionName: String? = null,
+    var outputSize: Int? = null,
+    underlyingNode: Node?,
+) : Concept(underlyingNode)
 
 open class TLS(
     versionNumber: Float,
@@ -224,6 +222,24 @@ class HttpRequestWithArguments(
         underlyingNode = underlyingNode,
     )
 
+class DatabaseQueryWithInput(
+    val parameters: List<Node>,
+    modify: Boolean?,
+    calls: java.util.List<String>?,
+    databaseService: DatabaseService?,
+    storage: DatabaseStorage?,
+    linkedConcept: DatabaseStorage,
+    underlyingNode: Node?,
+) :
+    DatabaseQuery(
+        modify = modify,
+        calls = calls,
+        databaseService = databaseService,
+        storage = storage,
+        linkedConcept = linkedConcept,
+        underlyingNode = underlyingNode,
+    )
+
 class RateLimiting(val maxRequests: Int, val timeWindowSeconds: Int, underlyingNode: Node?) :
     Concept(underlyingNode)
 
@@ -254,6 +270,171 @@ class ExtendedHttpEndpoint(
         transportEncryption,
         underlyingNode,
     )
+
+class SHA_256(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-256", outputSize = 256, underlyingNode = underlyingNode)
+
+class SHA_384(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-284", outputSize = 384, underlyingNode = underlyingNode)
+
+class SHA_512(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA-512", outputSize = 512, underlyingNode = underlyingNode)
+
+class SHA_512_256(underlyingNode: Node?) :
+    HashFunction(
+        hashFunctionName = "SHA-512/256",
+        outputSize = 256,
+        underlyingNode = underlyingNode,
+    )
+
+class SHA3_256(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-256", outputSize = 256, underlyingNode = underlyingNode)
+
+class SHA3_384(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-384", outputSize = 384, underlyingNode = underlyingNode)
+
+class SHA3_512(underlyingNode: Node?) :
+    HashFunction(hashFunctionName = "SHA3-512", outputSize = 512, underlyingNode = underlyingNode)
+
+class DHKeyExchange(pSize: Int?, underlyingNode: Node?) :
+    AsymmetricCipher(
+        blockSize = pSize,
+        cipherName = "DH",
+        keySize = pSize,
+        padding = null,
+        underlyingNode = underlyingNode,
+    )
+
+class ECDHKeyExchange(val parameter: String?, pSize: Int?, underlyingNode: Node?) :
+    AsymmetricCipher(
+        blockSize = pSize,
+        cipherName = "ECDH",
+        keySize = pSize,
+        padding = null,
+        underlyingNode = underlyingNode,
+    )
+
+class CMAC(val cipher: Cipher?, input: Input?, key: Key?, underlyingNode: Node?) :
+    MessageAuthenticationCode(
+        type = "CMAC",
+        input = input,
+        key = key,
+        underlyingNode = underlyingNode,
+    )
+
+class GMAC(
+    val cipher: Cipher?,
+    val iv: InitializationVector?,
+    input: Input?,
+    key: Key?,
+    underlyingNode: Node?,
+) :
+    MessageAuthenticationCode(
+        type = "GMAC",
+        input = input,
+        key = key,
+        underlyingNode = underlyingNode,
+    )
+
+class KMAC(
+    val hashFunction: HashFunction?,
+    val strength: Int?,
+    input: Input?,
+    key: Key?,
+    underlyingNode: Node?,
+) :
+    MessageAuthenticationCode(
+        type = "KMAC",
+        input = input,
+        key = key,
+        underlyingNode = underlyingNode,
+    )
+
+class HMAC(val hashFunction: HashFunction?, input: Input?, key: Key?, underlyingNode: Node?) :
+    MessageAuthenticationCode(
+        type = "HMAC",
+        input = input,
+        key = key,
+        underlyingNode = underlyingNode,
+    )
+
+open class Signature(val schemeName: String?, val key: Key?, underlyingNode: Node?) :
+    Concept(underlyingNode = underlyingNode)
+
+class RSASignature(
+    val rsaCipher: AsymmetricCipher?,
+    val formattingScheme: FormattingScheme?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "RSA", key = key, underlyingNode = underlyingNode)
+
+class DSASignature(
+    val primePSize: Int?,
+    val primeQSize: Int?,
+    val hashFunction: HashFunction?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "DSA", key = key, underlyingNode = underlyingNode)
+
+class ECDSASignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val hashFunction: HashFunction?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "DSA", key = key, underlyingNode = underlyingNode)
+
+class SlhDsaSignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "SLH-DSA", key = key, underlyingNode = underlyingNode)
+
+class MlDsaSignature(
+    val parameter: String?,
+    val algorithmName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = "ML-DSA", key = key, underlyingNode = underlyingNode)
+
+class StatefulHashBasedSignature(
+    val parameter: String?,
+    schemeName: String?,
+    val variant: Variant?,
+    val hashFunction: HashFunction?,
+    val version: Version?,
+    key: Key?,
+    underlyingNode: Node?,
+) : Signature(schemeName = schemeName, key = key, underlyingNode = underlyingNode)
+
+open class FormattingScheme(val schemeName: String?, underlyingNode: Node?) :
+    Concept(underlyingNode = underlyingNode)
+
+class EMSA_PSS(underlyingNode: Node?) : FormattingScheme("EMSA-PSS", underlyingNode)
+
+class DS2(underlyingNode: Node?) : FormattingScheme("DS2", underlyingNode)
+
+class DS3(underlyingNode: Node?) : FormattingScheme("DS3", underlyingNode)
+
+enum class Variant {
+    Hedged,
+    Deterministic,
+}
+
+enum class Version {
+    Pure,
+    PreHash,
+}
+
+class InstallUpdate(val update: AutomaticUpdates, underlyingNode: Node?) :
+    Operation(concept = update, underlyingNode = underlyingNode)
 
 /**
  * Represents a safeguard applied to data to ensure data minimisation principles are followed. This
