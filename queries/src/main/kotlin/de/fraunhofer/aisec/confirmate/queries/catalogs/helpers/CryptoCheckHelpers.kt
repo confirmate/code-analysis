@@ -20,9 +20,6 @@ import de.fraunhofer.aisec.cpg.query.Must
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import de.fraunhofer.aisec.cpg.query.dataFlow
 
-val Cipher.cipherName: String
-    get() = this.name.toString()
-
 fun SymmetricCipher.isAES(): QueryTree<Boolean> {
     val algoAccepted = this.cipherName?.uppercase()?.contains("AES") == true
     val algoCheck =
@@ -200,10 +197,10 @@ fun SymmetricCipher.isRandomIv(): QueryTree<Boolean> {
 fun Cipher.keySizeBiggerThan(minimalSize: Int): QueryTree<Boolean> =
     this.keySize?.let {
         QueryTree(
-            value = it >= 3000,
+            value = it >= minimalSize,
             stringRepresentation =
-                if (it >= 3000) "The keysize is bigger than 3000 bit"
-                else "The keysize $it is smaller than the required 3000 bit",
+                if (it >= minimalSize) "The keysize is bigger than $minimalSize bit"
+                else "The keysize $it is smaller than the required $minimalSize bit",
             node = this,
             operator = GenericQueryOperators.EVALUATE,
         )
