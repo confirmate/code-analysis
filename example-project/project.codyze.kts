@@ -4,6 +4,7 @@
 @file:OptIn(ExperimentalUuidApi::class)
 
 import de.fraunhofer.aisec.confirmate.queries.catalogs.*
+import de.fraunhofer.aisec.confirmate.queries.catalogs.configs.DefaultConfig
 import de.fraunhofer.aisec.confirmate.queries.catalogs.german.*
 import de.fraunhofer.aisec.confirmate.queries.catalogs.german.BSI_TR02102
 import de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities.*
@@ -42,6 +43,16 @@ project {
         false
     }
 
+    val postponeUpdate: (Node) -> Boolean = { node ->
+        /* Let's say we have no way to postpone automatic updates. */
+        false
+    }
+
+    val notificationChannel: (Node) -> Boolean = { node ->
+        /* Let's say we have no way to notify users about automatic updates. */
+        false
+    }
+
     val relevantActivities: (Node) -> Boolean = {
         it is FileOperation ||
             it is DatabaseOperation ||
@@ -66,25 +77,25 @@ project {
                     }
                 }
             }
-            
+
             requirement {
                 name = "X.1.1.3"
                 description =
                     "Products with digital elements shall be made available on the market with a secure by default configuration, " +
-                            "unless otherwise agreed between manufacturer and business user in relation to a tailor-made product " +
-                            "with digital elements, including the possibility to reset the product to its original state;"
+                        "unless otherwise agreed between manufacturer and business user in relation to a tailor-made product " +
+                        "with digital elements, including the possibility to reset the product to its original state;"
 
                 fulfilledBy {
-                    with(DefaultConfig()){
+                    with(DefaultConfig()) {
                         secureConfigAlwaysUsed()
                             .withMetricId("SecureConfigurationEnforced")
                             .withEvidenceId("E55") and
-                                noNonConfigConstantsToSecureOperation()
-                                    .withMetricId("SecureConfigurationEnforced")
-                                    .withEvidenceId("E55") and
-                                secureValuesConfigured()
-                                    .withMetricId("SecureConfigurationEnforced")
-                                    .withEvidenceId("E55")
+                            noNonConfigConstantsToSecureOperation()
+                                .withMetricId("SecureConfigurationEnforced")
+                                .withEvidenceId("E55") and
+                            secureValuesConfigured()
+                                .withMetricId("SecureConfigurationEnforced")
+                                .withEvidenceId("E55")
                     }
                 }
             }
@@ -102,7 +113,13 @@ project {
                         .withEvidenceId("E61") and
                         updatesEnabled()
                             .withMetricId("AutomaticUpdatesEnabled")
-                            .withEvidenceId("E58")
+                            .withEvidenceId("E58") and
+                        updateCanBePostponed(postponeUpdate)
+                            .withMetricId("PostponeAlertOptionEnabled")
+                            .withEvidenceId("E60") and
+                        notificationOfUpdates(notificationChannel)
+                            .withMetricId("PostponeAlertOptionEnabled")
+                            .withEvidenceId("E60")
                 }
             }
 
