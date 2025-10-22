@@ -73,8 +73,14 @@ project {
                     "Products with digital elements shall ensure that vulnerabilities can be addressed through security updates, including, where applicable, through automatic security updates that are installed within an appropriate timeframe enabled as a default setting, with a clear and easy-to-use opt-out mechanism, through the notification of available updates to users, and the option to temporarily postpone them;"
 
                 fulfilledBy {
-                    // We want to check at least once per day for updates.
-                    updateIntervalSmallEnough(Duration.ofDays(1))
+                    // We want to check at least once per 720 hours. Says the security metrics repo:
+                    // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
+                    updateIntervalSmallEnough(Duration.ofHours(720))
+                        .withMetricId("AutomaticUpdatesInterval")
+                        .withEvidenceId("E61") and
+                        updatesEnabled()
+                            .withMetricId("AutomaticUpdatesEnabled")
+                            .withEvidenceId("E58")
                 }
             }
 

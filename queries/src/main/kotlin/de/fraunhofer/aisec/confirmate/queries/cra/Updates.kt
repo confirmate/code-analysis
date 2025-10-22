@@ -11,6 +11,24 @@ import de.fraunhofer.aisec.cpg.query.QueryTree
 import java.time.Duration
 
 context(translationResult: TranslationResult)
+fun updatesEnabled(): QueryTree<Boolean> {
+    return translationResult.allExtended<AutomaticUpdates> {
+        (it.enabled eq true).apply {
+            stringRepresentation =
+                if (value) "The automatic update is enabled"
+                else "The automatic update is disabled, that's not compliant"
+        }
+    } and
+        translationResult
+            .existsExtended<AutomaticUpdates> { it.enabled eq true }
+            .apply {
+                stringRepresentation =
+                    if (value) "There should be at least one automatic update"
+                    else "There is no automatic update procedure. That's not compliant."
+            }
+}
+
+context(translationResult: TranslationResult)
 fun updateIntervalSmallEnough(maxUpdateInterval: Duration): QueryTree<Boolean> {
     return translationResult.allExtended<AutomaticUpdates> {
         it.interval?.let { interval ->
