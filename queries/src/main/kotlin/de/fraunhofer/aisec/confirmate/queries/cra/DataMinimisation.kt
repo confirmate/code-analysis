@@ -131,6 +131,9 @@ fun DatabaseStorageWithTTL.hasTTLOrRetentionPeriod(): Boolean {
 
 /**
  * Checks whether data stored in the database is actually read and used.
+ *
+ * Note: Currently we are following the data flow in one direction (Forward). We may need to consider
+ * backward flows as well.
  */
 @AssessesMetrics("DataMinimisationTechniquesEnabled")
 @RepresentsEvidences("E80")
