@@ -140,11 +140,13 @@ fun dbStoredDataIsRead(
     isWriteQuery: (DatabaseQueryWithInput) -> Boolean,
     isReadQuery: (DatabaseQueryWithInput) -> Boolean,
 ): QueryTree<Boolean> {
-    return tr.allChildrenWithOverlays<DatabaseQueryWithInput> { query ->
-            isWriteQuery(query) && query.parameters.isNotEmpty()
-        }
-        .map { writeQuery -> writeQuery.parametersFlowToReadQuery(isReadQuery) }
-        .mergeWithAll()
+    return tr.allExtended<DatabaseQueryWithInput>(
+        sel = { query -> isWriteQuery(query) && query.parameters.isNotEmpty() }
+    ) {
+        // TODO: Shouldn't we somehow check if it writes/reads the same column and table?
+        writeQuery ->
+        writeQuery.parametersFlowToReadQuery(isReadQuery)
+    }
 }
 
 fun DatabaseQueryWithInput.parametersFlowToReadQuery(
