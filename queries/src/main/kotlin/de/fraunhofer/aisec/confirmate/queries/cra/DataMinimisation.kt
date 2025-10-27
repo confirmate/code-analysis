@@ -145,7 +145,8 @@ fun dbStoredDataIsRead(
     return tr.allExtended<DatabaseQueryWithInput>(
         sel = { query -> isWriteQuery(query) && query.parameters.isNotEmpty() }
     ) {
-        // Shouldn't we somehow check if it writes/reads the same column and table? Or does this happen via the dataflows in the overlay graph?
+        // Shouldn't we somehow check if it writes/reads the same column and table? Or does this
+        // happen via the dataflows in the overlay graph?
         writeQuery ->
         writeQuery.parametersFlowToReadQuery(isReadQuery)
     }
@@ -157,16 +158,17 @@ fun DatabaseQueryWithInput.parametersFlowToReadQuery(
     val parameterFlows =
         this.parameters.map { param ->
             dataFlow(
-                startNode = param,
-                direction = Forward(GraphToFollow.DFG),
-                scope = Interprocedural(),
-                predicate = { node ->
-                    node.overlays.filterIsInstance<DatabaseQueryWithInput>().any(isReadQuery)
-                },
-            ).assume(
-                AssumptionType.DataFlowAssumption,
-                "We assume that there's a dataflow in the overlay graph if a database write operation and read operation access the same element/column/table."
-            )
+                    startNode = param,
+                    direction = Forward(GraphToFollow.DFG),
+                    scope = Interprocedural(),
+                    predicate = { node ->
+                        node.overlays.filterIsInstance<DatabaseQueryWithInput>().any(isReadQuery)
+                    },
+                )
+                .assume(
+                    AssumptionType.DataFlowAssumption,
+                    "We assume that there's a dataflow in the overlay graph if a database write operation and read operation access the same element/column/table.",
+                )
         }
 
     return parameterFlows.mergeWithAll()
