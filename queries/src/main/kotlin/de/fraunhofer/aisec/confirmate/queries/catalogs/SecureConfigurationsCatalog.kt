@@ -1,9 +1,13 @@
+/*
+ * This file is part of the Confirmate project.
+ */
 package de.fraunhofer.aisec.confirmate.queries.catalogs
 
 /**
- * If an instance of a [de.fraunhofer.aisec.codyze.catalogs.SotaRequirementsCatalog] provides an interpretation of the state-of-the-art
- * regarding secure configurations, it should implement this interface to signal that it provides
- * such an interpretation and fill values into the secure configurations map.
+ * If an instance of a [de.fraunhofer.aisec.codyze.catalogs.SotaRequirementsCatalog] provides an
+ * interpretation of the state-of-the-art regarding secure configurations, it should implement this
+ * interface to signal that it provides such an interpretation and fill values into the secure
+ * configurations map.
  */
 interface SecureConfigurationsCatalog {
 
@@ -22,6 +26,6 @@ interface SecureConfigurationsCatalog {
      */
     fun isSecureConfigValue(configName: String, configValue: String): Boolean {
         return !secureConfigurations.containsKey(configName) ||
-                secureConfigurations.get(configName)?.contains(configValue) ?: false
+            secureConfigurations.get(configName)?.contains(configValue) ?: false
     }
 }
