@@ -3,10 +3,10 @@
  */
 package de.fraunhofer.aisec.confirmate.queries.catalogs.configs
 
-import de.fraunhofer.aisec.confirmate.queries.catalogs.RequirementsCatalog
+import de.fraunhofer.aisec.codyze.catalogs.SotaRequirementsCatalog
 import de.fraunhofer.aisec.confirmate.queries.catalogs.SecureConfigurationsCatalog
 
-class DefaultConfig() : RequirementsCatalog(), SecureConfigurationsCatalog {
+class DefaultConfig() : SotaRequirementsCatalog(), SecureConfigurationsCatalog {
 
     override val secureConfigurations: MutableMap<String, List<String>> =
         hashMapOf(

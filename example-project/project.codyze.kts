@@ -3,10 +3,9 @@
  */
 @file:OptIn(ExperimentalUuidApi::class)
 
-import de.fraunhofer.aisec.confirmate.queries.catalogs.*
+import de.fraunhofer.aisec.codyze.catalogs.*
+import de.fraunhofer.aisec.codyze.catalogs.german.*
 import de.fraunhofer.aisec.confirmate.queries.catalogs.configs.DefaultConfig
-import de.fraunhofer.aisec.confirmate.queries.catalogs.german.*
-import de.fraunhofer.aisec.confirmate.queries.catalogs.german.BSI_TR02102
 import de.fraunhofer.aisec.confirmate.queries.catalogs.vulnerabilities.*
 import de.fraunhofer.aisec.confirmate.queries.cra.*
 import de.fraunhofer.aisec.cpg.graph.Node
