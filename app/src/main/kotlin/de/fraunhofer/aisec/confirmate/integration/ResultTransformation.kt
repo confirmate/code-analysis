@@ -20,7 +20,8 @@ const val codyzeToolId = "Codyze"
 context(currentTimestamp: OffsetDateTime, toe: TranslationResult)
 @OptIn(ExperimentalUuidApi::class)
 private fun QueryTree<*>.toAssessmentResult(
-    evidences: MutableSet<Evidence>
+    requirementId: String,
+    evidences: MutableSet<Evidence>,
 ): List<AssessmentResult> {
     val metricId = this.metricId
     val value = this.value as? Boolean
@@ -64,7 +65,8 @@ private fun QueryTree<*>.toAssessmentResult(
                 evidenceId = evidenceId,
                 resourceId = this@toAssessmentResult.node?.location?.artifactLocation.toString(),
                 resourceTypes = listOf("Code"),
-                complianceComment = this.printNicely(),
+                complianceComment =
+                    "http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}",
                 targetOfEvaluationId = toeId,
                 toolId = codyzeToolId,
                 historyUpdatedAt = currentTimestamp,
@@ -74,7 +76,7 @@ private fun QueryTree<*>.toAssessmentResult(
         )
     } else {
         // No metric ID, so we cannot create an assessment result. Go to the children
-        return this.children.flatMap { it.toAssessmentResult(evidences) }
+        return this.children.flatMap { it.toAssessmentResult(requirementId, evidences) }
     }
 }
 
@@ -89,7 +91,7 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
     with(currentTimestamp) {
         with(this@toClouditorResults.translationResult) {
             this@toClouditorResults.requirementsResults.forEach { (requirementId, result) ->
-                assessmentResults.addAll(result.toAssessmentResult(evidences))
+                assessmentResults.addAll(result.toAssessmentResult(requirementId, evidences))
             }
         }
     }
