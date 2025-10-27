@@ -5,6 +5,8 @@ package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.graph.Component
+import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import io.clouditor.model.AssessmentResult
 import io.clouditor.model.Evidence
@@ -63,7 +65,8 @@ private fun QueryTree<*>.toAssessmentResult(
                     ),
                 compliant = value,
                 evidenceId = evidenceId,
-                resourceId = this@toAssessmentResult.node?.location?.artifactLocation.toString(),
+                resourceId =
+                    "http://localhost:8080/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
                 resourceTypes = listOf("Code"),
                 complianceComment =
                     "${this.stringRepresentation}<br />Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}",
