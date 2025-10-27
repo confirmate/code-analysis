@@ -66,7 +66,7 @@ private fun QueryTree<*>.toAssessmentResult(
                 resourceId = this@toAssessmentResult.node?.location?.artifactLocation.toString(),
                 resourceTypes = listOf("Code"),
                 complianceComment =
-                    "Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}",
+                    "${this.stringRepresentation}<br />Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}",
                 targetOfEvaluationId = toeId,
                 toolId = codyzeToolId,
                 historyUpdatedAt = currentTimestamp,
