@@ -17,6 +17,7 @@
 package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
+import de.fraunhofer.aisec.confirmate.codyzePort
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.Component
 import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
@@ -79,13 +80,13 @@ private fun QueryTree<*>.toAssessmentResult(
                 compliant = value,
                 evidenceId = evidenceId,
                 resourceId =
-                    "http://localhost:8080/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
+                    "http://localhost:$codyzePort/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
                 resourceTypes = listOf("Code"),
                 complianceComment =
                     """
                     ${this.stringRepresentation}
                   
-                    [View the result in Codyze](http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id})
+                    [View the result in Codyze](http://localhost:$codyzePort/requirements/$requirementId?targetNodeId=${this.id})
                     """
                         .trimIndent(),
                 targetOfEvaluationId = toeId,
