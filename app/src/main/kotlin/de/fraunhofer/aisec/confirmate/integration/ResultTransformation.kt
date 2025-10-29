@@ -1,10 +1,25 @@
 /*
  * This file is part of the Confirmate project.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
  */
 package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.cpg.TranslationResult
+import de.fraunhofer.aisec.cpg.graph.Component
+import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import io.clouditor.model.AssessmentResult
 import io.clouditor.model.Evidence
@@ -20,7 +35,8 @@ const val codyzeToolId = "Codyze"
 context(currentTimestamp: OffsetDateTime, toe: TranslationResult)
 @OptIn(ExperimentalUuidApi::class)
 private fun QueryTree<*>.toAssessmentResult(
-    evidences: MutableSet<Evidence>
+    requirementId: String,
+    evidences: MutableSet<Evidence>,
 ): List<AssessmentResult> {
     val metricId = this.metricId
     val value = this.value as? Boolean
@@ -62,9 +78,11 @@ private fun QueryTree<*>.toAssessmentResult(
                     ),
                 compliant = value,
                 evidenceId = evidenceId,
-                resourceId = this@toAssessmentResult.node?.location?.artifactLocation.toString(),
+                resourceId =
+                    "http://localhost:8080/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
                 resourceTypes = listOf("Code"),
-                complianceComment = this.printNicely(),
+                complianceComment =
+                    "${this.stringRepresentation}<br />Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}",
                 targetOfEvaluationId = toeId,
                 toolId = codyzeToolId,
                 historyUpdatedAt = currentTimestamp,
@@ -74,7 +92,7 @@ private fun QueryTree<*>.toAssessmentResult(
         )
     } else {
         // No metric ID, so we cannot create an assessment result. Go to the children
-        return this.children.flatMap { it.toAssessmentResult(evidences) }
+        return this.children.flatMap { it.toAssessmentResult(requirementId, evidences) }
     }
 }
 
@@ -89,7 +107,7 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
     with(currentTimestamp) {
         with(this@toClouditorResults.translationResult) {
             this@toClouditorResults.requirementsResults.forEach { (requirementId, result) ->
-                assessmentResults.addAll(result.toAssessmentResult(evidences))
+                assessmentResults.addAll(result.toAssessmentResult(requirementId, evidences))
             }
         }
     }
