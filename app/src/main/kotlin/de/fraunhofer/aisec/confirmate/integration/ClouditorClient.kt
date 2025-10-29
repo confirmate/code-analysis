@@ -95,7 +95,7 @@ class ClouditorClient {
     }
 
     suspend fun sendConfirmateResults(result: AnalysisResult) {
-        val confirmateResults = result.toConfirmateResult()
+        val confirmateResults = with(log) { result.toConfirmateResult() }
         for (assessment in confirmateResults.assessmentResult) {
             val response = orchApi.orchestratorStoreAssessmentResult(assessment)
             if (response.success) {
