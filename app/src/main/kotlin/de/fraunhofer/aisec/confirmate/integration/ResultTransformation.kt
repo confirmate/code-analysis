@@ -82,9 +82,11 @@ private fun QueryTree<*>.toAssessmentResult(
                     "http://localhost:8080/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
                 resourceTypes = listOf("Code"),
                 complianceComment =
-                    """${this.stringRepresentation}
+                    """
+                    ${this.stringRepresentation}
                   
-                    Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}"""
+                    Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}
+                    """
                         .trimIndent(),
                 targetOfEvaluationId = toeId,
                 toolId = codyzeToolId,
