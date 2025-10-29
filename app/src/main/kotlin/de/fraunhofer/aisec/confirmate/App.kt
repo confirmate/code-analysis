@@ -49,7 +49,7 @@ fun evaluateWithCodyze(
     // Print some performance metrics
     result.translationResult.benchmarkResults.print()
 
-    runBlocking { ClouditorClient().sendClouditorResults(result) }
+    runBlocking { ClouditorClient().sendConfirmateResults(result) }
 
     ConsoleService.fromAnalysisResult(result).startConsole(port = codyzePort)
 

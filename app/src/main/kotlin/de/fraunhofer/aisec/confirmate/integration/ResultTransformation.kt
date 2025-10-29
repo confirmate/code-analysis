@@ -14,22 +14,18 @@
  *  limitations under the License.
  *
  */
+@file:OptIn(ExperimentalUuidApi::class)
+
 package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.confirmate.codyzePort
 import de.fraunhofer.aisec.cpg.TranslationResult
-import de.fraunhofer.aisec.cpg.graph.Component
-import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
+import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.query.QueryTree
-import io.clouditor.model.AssessmentResult
-import io.clouditor.model.Evidence
-import io.clouditor.model.MetricConfiguration
-import io.clouditor.model.ObjectStorage
-import io.clouditor.model.Resource
+import io.clouditor.model.*
 import java.time.OffsetDateTime
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
+import kotlin.uuid.*
 
 const val codyzeToolId = "Codyze"
 
@@ -79,8 +75,7 @@ private fun QueryTree<*>.toAssessmentResult(
                     ),
                 compliant = value,
                 evidenceId = evidenceId,
-                resourceId =
-                    "http://localhost:$codyzePort/components/${this.node?.firstParentOrNull<Component>()?.name ?: ""}",
+                resourceId = this.node?.firstParentOrNull<Component>()?.id.toString(),
                 resourceTypes = listOf("Code"),
                 complianceComment =
                     """
@@ -92,7 +87,7 @@ private fun QueryTree<*>.toAssessmentResult(
                 targetOfEvaluationId = toeId,
                 toolId = codyzeToolId,
                 historyUpdatedAt = currentTimestamp,
-                history = listOf(io.clouditor.model.Record(this.id.toString(), currentTimestamp)),
+                history = listOf(Record(this.id.toString(), currentTimestamp)),
                 complianceDetails = listOf(),
             )
         )
@@ -102,8 +97,13 @@ private fun QueryTree<*>.toAssessmentResult(
     }
 }
 
+data class ConfirmateResults(
+    val assessmentResult: Set<AssessmentResult>,
+    val evidences: List<Evidence>,
+)
+
 @OptIn(ExperimentalUuidApi::class)
-fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidence>> {
+fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
     val currentTimestamp =
         OffsetDateTime.now() // TODO: Should this be the timestamp when we started the analysis?
 
@@ -111,11 +111,45 @@ fun AnalysisResult.toClouditorResults(): Pair<Set<AssessmentResult>, Set<Evidenc
     val assessmentResults = mutableSetOf<AssessmentResult>()
 
     with(currentTimestamp) {
-        with(this@toClouditorResults.translationResult) {
-            this@toClouditorResults.requirementsResults.forEach { (requirementId, result) ->
+        with(this@toConfirmateResult.translationResult) {
+            this@toConfirmateResult.requirementsResults.forEach { (requirementId, result) ->
                 assessmentResults.addAll(result.toAssessmentResult(requirementId, evidences))
             }
         }
     }
-    return assessmentResults to evidences
+
+    return ConfirmateResults(
+        assessmentResults,
+        this.translationResult.components.map { with(this.translationResult) { it.toEvidence() } },
+    )
+}
+
+/** Converts a [Component] to an [Evidence] object for Confirmate. */
+context(toe: TranslationResult)
+private fun Component.toEvidence(): Evidence {
+    return Evidence(
+        id = this.id.toString(),
+        timestamp = OffsetDateTime.now(),
+        targetOfEvaluationId = toe.id.toString(),
+        toolId = codyzeToolId,
+        resource = this.toResource(),
+    )
+}
+
+context(toe: TranslationResult)
+@OptIn(ExperimentalUuidApi::class)
+private fun Component.toResource(): Resource {
+    // Check, if this is an application or library
+    val isLibrary = this.name.contains("Library") || this.name.startsWith("lib")
+
+    return if (isLibrary) {
+        Resource(
+            library = Library(id = this.id.toString(), name = this.name.toString(), raw = this.code)
+        )
+    } else {
+        Resource(
+            application =
+                Application(id = this.id.toString(), name = this.name.toString(), raw = this.code)
+        )
+    }
 }
