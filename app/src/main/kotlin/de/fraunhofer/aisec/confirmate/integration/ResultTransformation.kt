@@ -85,7 +85,7 @@ private fun QueryTree<*>.toAssessmentResult(
                     """
                     ${this.stringRepresentation}
                   
-                    Check the result in Codyze: http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id}
+                    [View the result in Codyze](http://localhost:8080/requirements/$requirementId?targetNodeId=${this.id})
                     """
                         .trimIndent(),
                 targetOfEvaluationId = toeId,
