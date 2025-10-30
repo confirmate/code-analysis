@@ -80,10 +80,7 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        OwaspTop10Scanner()
-                            .scanAll()
-                            .withMetricId("VulnerabilityScanReportUpdated")
-                            .withEvidenceId("E53")
+                        OwaspTop10Scanner().scanAll().withMetricId("VulnerabilityScanReportUpdated")
                     }
                 }
             }
@@ -97,15 +94,10 @@ project {
 
                 fulfilledBy {
                     with(DefaultConfig()) {
-                        secureConfigAlwaysUsed()
-                            .withMetricId("SecureConfigurationEnforced")
-                            .withEvidenceId("E55") and
+                        secureConfigAlwaysUsed().withMetricId("SecureConfigurationEnforced") and
                             noNonConfigConstantsToSecureOperation()
-                                .withMetricId("SecureConfigurationEnforced")
-                                .withEvidenceId("E55") and
-                            secureValuesConfigured()
-                                .withMetricId("SecureConfigurationEnforced")
-                                .withEvidenceId("E55")
+                                .withMetricId("SecureConfigurationEnforced") and
+                            secureValuesConfigured().withMetricId("SecureConfigurationEnforced")
                     }
                 }
             }
@@ -119,17 +111,12 @@ project {
                     // We want to check at least once per 720 hours. Says the security metrics repo:
                     // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
                     updateIntervalSmallEnough(Duration.ofHours(720))
-                        .withMetricId("AutomaticUpdatesInterval")
-                        .withEvidenceId("E61") and
-                        updatesEnabled()
-                            .withMetricId("AutomaticUpdatesEnabled")
-                            .withEvidenceId("E58") and
+                        .withMetricId("AutomaticUpdatesInterval") and
+                        updatesEnabled().withMetricId("AutomaticUpdatesEnabled") and
                         updateCanBePostponed(postponeUpdate)
-                            .withMetricId("PostponeAlertOptionEnabled")
-                            .withEvidenceId("E60") and
+                            .withMetricId("PostponeAlertOptionEnabled") and
                         notificationOfUpdates(notificationChannel)
                             .withMetricId("PostponeAlertOptionEnabled")
-                            .withEvidenceId("E60")
                 }
             }
 
@@ -141,41 +128,29 @@ project {
                 fulfilledBy {
                     authorizationAtEndpoint(::authorizationSelector)
                         .withMetricId("AnomalyDetectionEnabled")
-                        .withEvidenceId("E67")
                     identityPasswordPolicyEnabled()
-                        .withMetricId("IdentityPasswordPolicyEnabled")
-                        .withEvidenceId("E62") and
+                        .withMetricId("IdentityPasswordPolicyEnabled") and
                         authorizationBeforeCriticalFunctionality(
                                 ::authorizationSelector,
                                 ::criticalSelector,
                             )
-                            .withMetricId("AnomalyDetectionEnabled")
-                            .withEvidenceId("E67") and
+                            .withMetricId("AnomalyDetectionEnabled") and
                         authenticationAtEndpoint(::authenticationSelector)
-                            .withMetricId("AnomalyDetectionEnabled")
-                            .withEvidenceId("E67") and
+                            .withMetricId("AnomalyDetectionEnabled") and
                         authenticationBeforeCriticalFunctionality(
                                 ::authenticationSelector,
                                 ::criticalSelector,
                             )
-                            .withMetricId("AnomalyDetectionEnabled")
-                            .withEvidenceId("E67") and
+                            .withMetricId("AnomalyDetectionEnabled") and
                         loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
-                            .withMetricId("AnomalyDetectionOutput")
-                            .withEvidenceId("E67") and
+                            .withMetricId("AnomalyDetectionOutput") and
                         adminAuthenticationWithMFA(::authenticationSelector)
-                            .withMetricId("AdminMFAEnabled")
-                            .withEvidenceId("E62") and
+                            .withMetricId("AdminMFAEnabled") and
                         identityPasswordPolicyEnabled()
-                            .withMetricId("IdentityPasswordPolicyEnabled")
-                            .withEvidenceId("E62") and
-                        anomalyDetectionEnabled()
-                            .withMetricId("AnomalyDetectionEnabled")
-                            .withEvidenceId("E67") and
+                            .withMetricId("IdentityPasswordPolicyEnabled") and
+                        anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled") and
                         with(BSI_TR02102()) {
-                            dataEncryptedBeforePersisting()
-                                .withMetricId("AtRestEncryptionEnabled")
-                                .withEvidenceId("E64")
+                            dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled")
                         }
                 }
             }
@@ -187,13 +162,10 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        dataEncryptedBeforePersisting()
-                            .withMetricId("AtRestEncryptionEnabled")
-                            .withEvidenceId("E70") and
+                        dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled") and
                             dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled")
-                                .withEvidenceId("E63")
                     }
                 }
             }
@@ -216,7 +188,6 @@ project {
                             .withMetricId("InTransitEncryptionEnabled") and
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled")
-                                .withEvidenceId("E63")
                     }
                 }
             }
@@ -231,20 +202,15 @@ project {
                             isSensitiveData = personalDataSources,
                             isStorageOperation = { n -> n is DatabaseOperation || n is WriteFile },
                         )
-                        .withMetricId("DataMinimisationTechniquesEnabled")
-                        .withEvidenceId("E79") and
+                        .withMetricId("DataMinimisationTechniquesEnabled") and
                         collectedDataIsProcessed(personalDataSources)
-                            .withMetricId("DataMinimisationTechniquesEnabled")
-                            .withEvidenceId("E79") and
-                        dbHasTTLConfigured()
-                            .withMetricId("AutomatedDeletionOfDataEnabled")
-                            .withEvidenceId("E80") and
+                            .withMetricId("DataMinimisationTechniquesEnabled") and
+                        dbHasTTLConfigured().withMetricId("AutomatedDeletionOfDataEnabled") and
                         dbStoredDataIsRead(
                                 isWriteQuery = { "insert" in (it.calls ?: listOf()) },
                                 isReadQuery = { "select" in (it.calls ?: listOf()) },
                             )
                             .withMetricId("DataMinimisationTechniquesEnabled")
-                            .withEvidenceId("E80")
                 }
             }
 
@@ -254,9 +220,9 @@ project {
                     "Products with digital elements shall protect the availability of essential and basic functions, also after an incident, including through resilience and mitigation measures against denial-of-service attacks;"
 
                 fulfilledBy {
-                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting())
-                        .withMetricId("DDOSMechanismActivated")
-                        .withEvidenceId("E86")
+                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting()).withMetricId(
+                        "DDOSMechanismActivated"
+                    )
                 }
             }
 
@@ -265,11 +231,7 @@ project {
                 description =
                     "Products with digital elements shall minimise the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks;"
 
-                fulfilledBy {
-                    interfacesAreRequired()
-                        .withMetricId("StandardProtocolsListed")
-                        .withEvidenceId("E87")
-                }
+                fulfilledBy { interfacesAreRequired().withMetricId("StandardProtocolsListed") }
             }
 
             requirement {
@@ -279,11 +241,8 @@ project {
 
                 fulfilledBy {
                     interfaceHasRiskAssessment()
-                        .withMetricId("RiskAssessmentMappingtoServicesandControl")
-                        .withEvidenceId("E3") and
-                        interfacesAreRequired()
-                            .withMetricId("StandardProtocolsListed")
-                            .withEvidenceId("E87")
+                        .withMetricId("RiskAssessmentMappingtoServicesandControl") and
+                        interfacesAreRequired().withMetricId("StandardProtocolsListed")
                 }
             }
 
@@ -292,7 +251,7 @@ project {
                 description =
                     "Products with digital elements shall be designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
 
-                fulfilledBy { relevantDataFlowToBackup() }
+                fulfilledBy { relevantDataFlowToBackup().withMetricId("BackupEnabled") }
             }
 
             requirement {
@@ -302,8 +261,7 @@ project {
 
                 fulfilledBy {
                     relevantActivityHasLogging({ relevantActivities(it) })
-                        .withMetricId("ActivityLoggingEnabled")
-                        .withEvidenceId("E99") and
+                        .withMetricId("ActivityLoggingEnabled") and
                         logEntriesHaveTimestamp() and
                         logEntriesContainInitiator().withMetricId("IdentityRecentActivity") and
                         loggingOptOut {
@@ -312,7 +270,6 @@ project {
                         loggingEnabledByDefault() and
                         loggedDataAvailableToUser({ false }, { false })
                             .withMetricId("SecurityDataAvailableToUser")
-                            .withEvidenceId("E97")
                 }
             }
 
@@ -329,7 +286,6 @@ project {
                                 dataSinks = sinksHoldingUserData({ personalDataSources(it) }),
                             )
                             .withMetricId("SecureDataDeletionMechanismActivated")
-                            .withEvidenceId("E102")
                 }
             }
         }
