@@ -94,7 +94,6 @@ jackson = [
     "jackson-jsr310"
 ]
 
-
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin"}
 dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
