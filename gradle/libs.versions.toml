@@ -24,7 +24,7 @@ apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version = 
 jackson-module = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson"}
 jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 
-kover-gradle = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version = "0.9.0" }
+kover-gradle = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version = "0.9.3" }
 dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" } # the dokka plugin is slightly behind the main Kotlin release cycle
 
 
