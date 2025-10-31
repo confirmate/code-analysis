@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.kotlin.reflect)
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.jackson)
+
+    testImplementation("io.mockk:mockk:1.14.6")
 }
 
 application {
@@ -56,3 +58,5 @@ tasks.register<GenerateTask>("generateApi") {
 sourceSets.main { kotlin.srcDirs("${project.projectDir}/build/generated-sources/src/main/kotlin") }
 
 tasks.withType<KotlinCompile>().configureEach { dependsOn("generateApi") }
+
+kotlin { compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") } }

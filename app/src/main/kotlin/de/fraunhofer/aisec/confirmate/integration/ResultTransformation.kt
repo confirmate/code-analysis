@@ -33,7 +33,7 @@ const val codyzeToolId = "Codyze"
 
 context(currentTimestamp: OffsetDateTime, toe: TranslationResult)
 @OptIn(ExperimentalUuidApi::class)
-private fun QueryTree<*>.toAssessmentResult(
+fun QueryTree<*>.toAssessmentResult(
     requirementId: String,
     evidenceId: String,
 ): List<AssessmentResult> {
@@ -141,7 +141,7 @@ fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
  * This will create a new evidence (with a new ID), but the resource ID will stay the same.
  */
 context(toe: TranslationResult)
-private fun Resource.toEvidence(): Evidence {
+fun Resource.toEvidence(): Evidence {
     return Evidence(
         // new evidence ID
         id = Uuid.random().toString(),
