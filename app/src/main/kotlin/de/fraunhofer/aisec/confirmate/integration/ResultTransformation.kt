@@ -117,8 +117,8 @@ fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
                 component.namespaces
                     .filter { it.namespaces.size == 1 }
                     .map {
-                        log.info("Creating evidence for namespace ${component.name}")
-                        it.toResource(app.id).toEvidence()
+                        log.info("Creating evidence for namespace ${it.name}")
+                        it.toResource(component.id.toString()).toEvidence()
                     }
             evidences += modules
         }
@@ -183,11 +183,11 @@ fun NamespaceDeclaration.toResource(componentId: String? = null): Resource {
                 id = this.name.toString(),
                 name = this.name.localName,
                 parentId =
-                    if (parent != null) {
+                    /*if (parent != null) {
                         parent.toString()
-                    } else {
-                        componentId
-                    },
+                    } else {*/
+                    componentId
+                /*}*/ ,
                 functionalities = mutableListOf(),
             )
     )
