@@ -27,9 +27,7 @@ import de.fraunhofer.aisec.cpg.graph.concepts.file.WriteFile
 import java.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
 
-include {
-    // No includes so far
-}
+include { Tagging from "tagging.codyze.kts" }
 
 project {
     name = "Example CRA project"
@@ -41,8 +39,8 @@ project {
         architecture {
             modules {
                 module("test-module") {
-                    directory = "src/main/kotlin/resources/toe"
-                    include("toe")
+                    directory = "src/main/resources/toe"
+                    include("yannick-password-manager")
                 }
             }
         }
