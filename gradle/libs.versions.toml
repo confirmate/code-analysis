@@ -47,7 +47,7 @@ codyze-console = { module = "de.fraunhofer.aisec:codyze-console", version.ref = 
 eclipse-cdt-core = { module = "11.5/cdt-11.5.0/plugins/org.eclipse.cdt:core", version = "8.4.0.202402110645"}
 
 # TODO: this may break, if version used by`cpg-language-python` and here diverge; can we infer the version?
-jep = { module = "black.ninia:jep", version = "4.2.0" }
+jep = { module = "black.ninia:jep", version = "4.3.1" }
 
 ktor-client-java = {module = "io.ktor:ktor-client-java", version.ref = "ktor" }
 ktor-client-core = {module = "io.ktor:ktor-client-core", version.ref = "ktor" }
