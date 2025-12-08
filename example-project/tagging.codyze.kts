@@ -16,4 +16,11 @@
  */
 import example.tagging.*
 
-project { tagging { tag { tagHttpRequests() } } }
+project {
+    tagging {
+        tag {
+            tagHttpRequests()
+            tagLogging()
+        }
+    }
+}

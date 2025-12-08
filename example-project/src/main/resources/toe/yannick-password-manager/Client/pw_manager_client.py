@@ -2,8 +2,12 @@ import requests
 import hashlib
 import secrets
 import binascii
+import logging
 from rapidfuzz import fuzz
 from cryptography.fernet import Fernet
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # @PersonalData
 CURRENT_USER_ID = None
@@ -85,6 +89,7 @@ def read_all():
         print("Bitte zuerst einloggen.")
         return
 
+    logging.info(f"Fetching all entries for user ID: {CURRENT_USER_ID}")
     url = f"http://127.0.0.1:5000/entry/{CURRENT_USER_ID}"
     r = requests.get(url)
 
@@ -147,6 +152,7 @@ def delete_entry():
     inp = int(input("ID zum Löschen: "))
     answer = input(f"Wollen Sie wirklich den Eintrag mit der ID {inp} löschen? Y/N: ")
     if answer.lower() == "y":
+        logging.info(f"User {CURRENT_USERNAME} deleting entry with ID: {inp}")
         r = requests.post("http://127.0.0.1:5000/del_entry", json={"id": inp, "user_id": CURRENT_USER_ID})
         print(r.json())
     else:
@@ -176,6 +182,7 @@ def log():
     user = input("Benutzername: ").strip()
     password = input("Passwort: ").strip()
 
+    logging.info(f"Login attempt for user: {user}")
     r = requests.post("http://127.0.0.1:5000/salt", json={"username": user})
     data = r.json()
     if not data.get("ok"):
@@ -190,14 +197,17 @@ def log():
     client_hash = derive_pbkdf2(password, salt_bytes)
     client_hash_hex = binascii.hexlify(client_hash).decode()
 
+    logging.info(f"Sending login request to server for user: {user}")
     r = requests.post("http://127.0.0.1:5000/login",json={"username": user, "client_hash": client_hash_hex})
     data = r.json()
 
     if data.get("ok"):
         CURRENT_USER_ID = data["user_id"]
         CURRENT_USERNAME = data["username"]
+        logging.info(f"User {user} successfully logged in")
         print(f"Eingeloggt  als Username: {CURRENT_USERNAME}, FernetKey {FERNET_KEY}")
     else:
+        logging.info(f"Login failed for user: {user}")
         print(f"Fehler {data}")
 
     print(data)
