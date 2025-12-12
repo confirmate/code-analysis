@@ -4,6 +4,7 @@ import hmac
 import binascii
 from flask import jsonify, request
 import requests
+import logging
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 import subprocess
@@ -184,6 +185,7 @@ def rcv_google_analytics():
         }]
     }
 
+    logging.info(f"Sending Google Analytics event to GA4 for user: {username}")
     try:
         r = requests.post(url, json=payload, timeout=10)
         ok = (r.status_code == 204)
@@ -224,6 +226,7 @@ def ga4_rcv():
 
     headers = {"Authorization": f"Bearer {access_token}","Content-Type": "application/json"}
 
+    logging.info(f"Fetching GA4 analytics data for property: {PROPERTY_ID}")
     r = requests.post(f"https://analyticsdata.googleapis.com/v1beta/properties/{PROPERTY_ID}:runReport", headers=headers, json=payload, timeout=10)
     data = r.json()
 

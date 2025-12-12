@@ -213,9 +213,15 @@ fun adminAuthenticationWithMFA(
 context(translationResult: TranslationResult)
 fun identityPasswordPolicyEnabled(): QueryTree<Boolean> {
     return translationResult.allExtended<Identity> { node ->
-        QueryTree<Boolean>(
-            value = node.disablePasswordPolicy == false,
-            stringRepresentation = "Identity ${node.name} has password policy enabled",
+        val hasPolicy = node.disablePasswordPolicy == false
+        QueryTree(
+            value = hasPolicy,
+            stringRepresentation =
+                if (hasPolicy) {
+                    "Identity ${node.name} has password policy enabled"
+                } else {
+                    "Identity ${node.name} has NO password policy enabled (disabled or missing)"
+                },
             node = node,
             operator = GenericQueryOperators.EVALUATE,
         )

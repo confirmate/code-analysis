@@ -21,6 +21,8 @@ project {
         tag {
             tagHttpRequests()
             tagLogging()
+            tagPythonEncryption()
+            tagIdentity()
         }
     }
 }
