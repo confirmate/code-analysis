@@ -94,9 +94,9 @@ class ClouditorClient {
         evidenceApi = EvidenceStoreApi(baseUrl, httpClientConfig = config, jsonBlock = jsonBlock)
     }
 
-    suspend fun sendClouditorResults(result: AnalysisResult) {
-        val clouditorResults = result.toClouditorResults()
-        for (assessment in clouditorResults.first) {
+    suspend fun sendConfirmateResults(result: AnalysisResult) {
+        val confirmateResults = with(log) { result.toConfirmateResult() }
+        for (assessment in confirmateResults.assessmentResult) {
             val response = orchApi.orchestratorStoreAssessmentResult(assessment)
             if (response.success) {
                 log.info(
@@ -110,7 +110,7 @@ class ClouditorClient {
             println("Assessment: $assessment")
         }
 
-        for (evidence in clouditorResults.second) {
+        for (evidence in confirmateResults.evidences) {
             val response = evidenceApi.evidenceStoreStoreEvidence(evidence)
             if (response.success) {
                 log.info("Successfully sent evidence with id ${evidence.id} to Clouditor.")

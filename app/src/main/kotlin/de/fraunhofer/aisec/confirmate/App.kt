@@ -29,6 +29,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlinx.coroutines.runBlocking
 
+val codyzePort = 8000
+
 /**
  * Evaluates a script file with Codyze using the provided profile.
  *
@@ -47,9 +49,9 @@ fun evaluateWithCodyze(
     // Print some performance metrics
     result.translationResult.benchmarkResults.print()
 
-    runBlocking { ClouditorClient().sendClouditorResults(result) }
+    runBlocking { ClouditorClient().sendConfirmateResults(result) }
 
-    ConsoleService.fromAnalysisResult(result).startConsole()
+    ConsoleService.fromAnalysisResult(result).startConsole(port = codyzePort)
 
     return result
 }
