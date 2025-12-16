@@ -30,17 +30,17 @@ import kotlin.uuid.ExperimentalUuidApi
 include { Tagging from "tagging.codyze.kts" }
 
 project {
-    name = "Example CRA project"
+    name = "Password Manager"
 
     toe {
-        name = "Example project"
+        name = "Password Manager"
         version = "1.0.0"
 
         architecture {
             modules {
                 module("test-module") {
                     directory = "src/main/resources/toe"
-                    include("yannick-password-manager")
+                    include("vibe-pythonpass")
                 }
             }
         }
