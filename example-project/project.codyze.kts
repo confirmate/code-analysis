@@ -28,19 +28,19 @@ import kotlin.uuid.ExperimentalUuidApi
 include { Tagging from "tagging.codyze.kts" }
 
 project {
-    name = "Example CRA project"
+    name = "Password Manager"
 
     tool { configuration { registerPass<PythonFileConceptPass>() } }
 
     toe {
-        name = "Example project"
+        name = "Password Manager"
         version = "1.0.0"
 
         architecture {
             modules {
                 module("test-module") {
                     directory = "src/main/resources/toe"
-                    include("yannick-password-manager")
+                    include("vibe-pythonpass")
                 }
             }
         }
@@ -71,206 +71,191 @@ project {
 
     requirements {
         category("CRA") {
-                        requirement {
-                            name = "X.1.1.2"
-                            description =
-                                "Products with digital elements shall be made available on the market without known exploitable vulnerabilities;"
+            requirement {
+                name = "X.1.1.2"
+                description =
+                    "Products with digital elements shall be made available on the market without known exploitable vulnerabilities;"
 
-                            fulfilledBy {
-                                with(BSI_TR02102()) {
+                fulfilledBy {
+                    with(BSI_TR02102()) {
+                        OwaspTop10Scanner().scanAll().withMetricId("VulnerabilityScanReportUpdated")
+                    }
+                }
+            }
 
-             OwaspTop10Scanner().scanAll().withMetricId("VulnerabilityScanReportUpdated")
-                                }
-                            }
+            requirement {
+                name = "X.1.1.3"
+                description =
+                    "Products with digital elements shall be made available on the market with a secure by default configuration, " +
+                        "unless otherwise agreed between manufacturer and business user in relation to a tailor-made product " +
+                        "with digital elements, including the possibility to reset the product to its original state;"
+
+                fulfilledBy {
+                    with(DefaultConfig()) {
+                        secureConfigAlwaysUsed().withMetricId("SecureConfigurationEnforced") and
+                            noNonConfigConstantsToSecureOperation()
+                                .withMetricId("SecureConfigurationEnforced") and
+                            secureValuesConfigured().withMetricId("SecureConfigurationEnforced")
+                    }
+                }
+            }
+
+            requirement {
+                name = "X.1.1.4"
+                description =
+                    "Products with digital elements shall ensure that vulnerabilities can be addressed through security updates, including, where applicable, through automatic security updates that are installed within an appropriate timeframe enabled as a default setting, with a clear and easy-to-use opt-out mechanism, through the notification of available updates to users, and the option to temporarily postpone them;"
+
+                fulfilledBy {
+                    // We want to check at least once per 720 hours. Says the security metrics repo:
+                    // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
+                    updateIntervalSmallEnough(Duration.ofHours(720))
+                        .withMetricId("AutomaticUpdatesInterval") and
+                        updatesEnabled().withMetricId("AutomaticUpdatesEnabled") and
+                        updateCanBePostponed(postponeUpdate)
+                            .withMetricId("PostponeAlertOptionEnabled") and
+                        notificationOfUpdates(notificationChannel)
+                            .withMetricId("PostponeAlertOptionEnabled")
+                }
+            }
+
+            requirement {
+                name = "X.1.1.5"
+                description =
+                    "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
+
+                fulfilledBy {
+                    authorizationAtEndpoint(::authorizationSelector)
+                        .withMetricId("AnomalyDetectionEnabled")
+                    identityPasswordPolicyEnabled()
+                        .withMetricId("IdentityPasswordPolicyEnabled") and
+                        authorizationBeforeCriticalFunctionality(
+                                ::authorizationSelector,
+                                ::criticalSelector,
+                            )
+                            .withMetricId("AnomalyDetectionEnabled") and
+                        authenticationAtEndpoint(::authenticationSelector)
+                            .withMetricId("AnomalyDetectionEnabled") and
+                        authenticationBeforeCriticalFunctionality(
+                                ::authenticationSelector,
+                                ::criticalSelector,
+                            )
+                            .withMetricId("AnomalyDetectionEnabled") and
+                        loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
+                            .withMetricId("AnomalyDetectionOutput") and
+                        adminAuthenticationWithMFA(::authenticationSelector)
+                            .withMetricId("AdminMFAEnabled") and
+                        identityPasswordPolicyEnabled()
+                            .withMetricId("IdentityPasswordPolicyEnabled") and
+                        anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled") and
+                        with(BSI_TR02102()) {
+                            dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled")
                         }
+                }
+            }
 
-                        requirement {
-                            name = "X.1.1.3"
-                            description =
-                                "Products with digital elements shall be made available on the market with a secure by default configuration, " +
-                                    "unless otherwise agreed between manufacturer and business user in relation to a tailor-made product " +
-                                    "with digital elements, including the possibility to reset the product to its original state;"
+            requirement {
+                name = "X.1.1.6"
+                description =
+                    "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"
 
-                            fulfilledBy {
-                                with(DefaultConfig()) {
+                fulfilledBy {
+                    with(BSI_TR02102()) {
+                        dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled") and
+                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                    }
+                }
+            }
 
-             secureConfigAlwaysUsed().withMetricId("SecureConfigurationEnforced") and
-                                        noNonConfigConstantsToSecureOperation()
-                                            .withMetricId("SecureConfigurationEnforced") and
+            requirement {
+                name = "X.1.1.7"
+                description =
+                    "Products with digital elements shall protect the integrity of stored, transmitted or otherwise processed data, personal or other, commands, programs and configuration against any manipulation or modification not authorised by the user, and report on corruptions;"
 
-             secureValuesConfigured().withMetricId("SecureConfigurationEnforced")
-                                }
-                            }
-                        }
+                fulfilledBy {
+                    with(BSI_TR02102()) {
+                        secureProtocolsEnabled(
+                                {
+                                    true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
+                                },
+                                {
+                                    false /* We do not know this, so let's fail to enforce a manual check. */
+                                },
+                            )
+                            .withMetricId("InTransitEncryptionEnabled") and
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled")
+                    }
+                }
+            }
 
-                        requirement {
-                            name = "X.1.1.4"
-                            description =
-                                "Products with digital elements shall ensure that vulnerabilities can be addressed through security updates, including, where applicable, through automatic security updates that are installed within an appropriate timeframe enabled  as a default setting, with a clear and easy-to-use opt-out mechanism, through the notification of available updates to users, and the option to temporarily postpone them;"
+            requirement {
+                name = "X.1.1.8"
+                description =
+                    "Products with digital elements shall process only data, personal or other, that are adequate, relevant and limited to what is necessary in relation to the intended purpose of the product with digital elements (data minimisation);"
 
-                            fulfilledBy {
-                                // We want to check at least once per 720 hours. Says the security metrics repo:
-                                // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
-                                updateIntervalSmallEnough(Duration.ofHours(720))
-                                    .withMetricId("AutomaticUpdatesInterval") and
-                                    updatesEnabled().withMetricId("AutomaticUpdatesEnabled") and
-                                    updateCanBePostponed(postponeUpdate)
-                                        .withMetricId("PostponeAlertOptionEnabled") and
-                                    notificationOfUpdates(notificationChannel)
-                                        .withMetricId("PostponeAlertOptionEnabled")
-                            }
-                        }
+                fulfilledBy {
+                    sensitiveDataHasSafeguards(
+                            isSensitiveData = personalDataSources,
+                            isStorageOperation = { n -> n is DatabaseOperation || n is WriteFile },
+                        )
+                        .withMetricId("DataMinimisationTechniquesEnabled") and
+                        collectedDataIsProcessed(personalDataSources)
+                            .withMetricId("DataMinimisationTechniquesEnabled") and
+                        dbHasTTLConfigured().withMetricId("AutomatedDeletionOfDataEnabled") and
+                        dbStoredDataIsRead(
+                                isWriteQuery = { "insert" in (it.calls ?: listOf()) },
+                                isReadQuery = { "select" in (it.calls ?: listOf()) },
+                            )
+                            .withMetricId("DataMinimisationTechniquesEnabled")
+                }
+            }
 
-                        requirement {
-                            name = "X.1.1.5"
-                            description =
-                                "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
+            requirement {
+                name = "X.1.1.9"
+                description =
+                    "Products with digital elements shall protect the availability of essential and basic functions, also after an incident, including through resilience and mitigation measures against denial-of-service attacks;"
 
-                            fulfilledBy {
-                                authorizationAtEndpoint(::authorizationSelector)
-                                    .withMetricId("AnomalyDetectionEnabled")
-                                identityPasswordPolicyEnabled()
-                                    .withMetricId("IdentityPasswordPolicyEnabled") and
-                                    authorizationBeforeCriticalFunctionality(
-                                            ::authorizationSelector,
-                                            ::criticalSelector,
-                                        )
-                                        .withMetricId("AnomalyDetectionEnabled") and
-                                    authenticationAtEndpoint(::authenticationSelector)
-                                        .withMetricId("AnomalyDetectionEnabled") and
-                                    authenticationBeforeCriticalFunctionality(
-                                            ::authenticationSelector,
-                                            ::criticalSelector,
-                                        )
-                                        .withMetricId("AnomalyDetectionEnabled") and
-                                    loggingOnSecurityErrors(::authenticationSelector,
-             ::authorizationSelector)
-                                        .withMetricId("AnomalyDetectionOutput") and
-                                    adminAuthenticationWithMFA(::authenticationSelector)
-                                        .withMetricId("AdminMFAEnabled") and
-                                    identityPasswordPolicyEnabled()
-                                        .withMetricId("IdentityPasswordPolicyEnabled") and
+                fulfilledBy {
+                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting()).withMetricId(
+                        "DDOSMechanismActivated"
+                    )
+                }
+            }
 
-             anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled") and
-                                    with(BSI_TR02102()) {
+            requirement {
+                name = "X.1.1.10"
+                description =
+                    "Products with digital elements shall minimise the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks;"
 
-             dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled")
-                                    }
-                            }
-                        }
+                fulfilledBy { interfacesAreRequired().withMetricId("StandardProtocolsListed") }
+            }
 
-                        requirement {
-                            name = "X.1.1.6"
-                            description =
-                                "Products with digital elements shall protect the confidentiality of stored, transmitted or otherwise processed data, personal or other, such as by encrypting relevant data at rest or in transit by state of the art mechanisms, and by using other technical means;"
+            requirement {
+                name = "X.1.1.11"
+                description =
+                    "Products with digital elements shall be designed, developed and produced to limit attack surfaces, including external interfaces;"
 
-                            fulfilledBy {
-                                with(BSI_TR02102()) {
+                fulfilledBy {
+                    interfaceHasRiskAssessment()
+                        .withMetricId("RiskAssessmentMappingtoServicesandControl") and
+                        interfacesAreRequired().withMetricId("StandardProtocolsListed")
+                }
+            }
 
-             dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled") and
+            requirement {
+                name = "X.1.1.12"
+                description =
+                    "Products with digital elements shall be designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
 
-             dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
-                                        identityPasswordPolicyEnabled()
-                                            .withMetricId("IdentityPasswordPolicyEnabled")
-                                }
-                            }
-                        }
-
-                        requirement {
-                            name = "X.1.1.7"
-                            description =
-                                "Products with digital elements shall protect the integrity of stored, transmitted or otherwise processed data, personal or other, commands, programs and configuration against any manipulation or modification not authorised by the user, and report on corruptions;"
-                            fulfilledBy {
-                                with(BSI_TR02102()) {
-                                    secureProtocolsEnabled(
-                                            {
-                                                true /* Let's just say that all connections have
-             to be secure. This should be fair nowadays. */
-                                            },
-                                            {
-                                                false /* We do not know this, so let's fail to
-             enforce a manual check. */
-                                            },
-                                        )
-                                        .withMetricId("InTransitEncryptionEnabled") and
-                                        identityPasswordPolicyEnabled()
-                                            .withMetricId("IdentityPasswordPolicyEnabled")
-                                }
-                            }
-                        }
-
-                        requirement {
-                            name = "X.1.1.8"
-                            description =
-                                "Products with digital elements shall process only data, personal or other, that are adequate, relevant and limited to what is necessary in relation to the intended purpose of the product with digital elements (data minimisation);"
-
-                            fulfilledBy {
-                                sensitiveDataHasSafeguards(
-                                        isSensitiveData = personalDataSources,
-                                        isStorageOperation = { n -> n is DatabaseOperation || n is
-             WriteFile },
-                                    )
-                                    .withMetricId("DataMinimisationTechniquesEnabled") and
-                                    collectedDataIsProcessed(personalDataSources)
-                                        .withMetricId("DataMinimisationTechniquesEnabled") and
-
-             dbHasTTLConfigured().withMetricId("AutomatedDeletionOfDataEnabled") and
-                                    dbStoredDataIsRead(
-                                            isWriteQuery = { "insert" in (it.calls ?: listOf()) },
-                                            isReadQuery = { "select" in (it.calls ?: listOf()) },
-                                        )
-                                        .withMetricId("DataMinimisationTechniquesEnabled")
-                            }
-                        }
-
-                        requirement {
-                            name = "X.1.1.9"
-                            description =
-                                "Products with digital elements shall protect the availability of essential and basic functions, also after an incident, including through resilience and mitigation measures against denial-of-service attacks;"
-
-                            fulfilledBy {
-                                (endpointsHaveRateLimiting() and
-             endpointsHaveSizeLimiting()).withMetricId(
-                                    "DDOSMechanismActivated"
-                                )
-                            }
-                        }
-
-                        requirement {
-                            name = "X.1.1.10"
-                            description =
-                                "Products with digital elements shall minimise the negative impact by the products themselves or connected devices on the availability of services provided by other devices or networks;"
-
-                            fulfilledBy {
-             interfacesAreRequired().withMetricId("StandardProtocolsListed") }
-                        }
-
-                        requirement {
-                            name = "X.1.1.11"
-                            description =
-                                "Products with digital elements shall be designed, developed and produced to limit attack surfaces, including external interfaces;"
-
-                            fulfilledBy {
-                                interfaceHasRiskAssessment()
-                                    .withMetricId("RiskAssessmentMappingtoServicesandControl") and
-
-             interfacesAreRequired().withMetricId("StandardProtocolsListed")
-                            }
-                        }
-
-                        requirement {
-                            name = "X.1.1.12"
-                            description =
-                                "Products with digital elements shall be designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
-
-                            fulfilledBy { relevantDataFlowToBackup().withMetricId("BackupEnabled")
-             }
-                        }
+                fulfilledBy { relevantDataFlowToBackup().withMetricId("BackupEnabled") }
+            }
 
             requirement {
                 name = "X.1.1.13"
                 description =
-                    "Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
+                    " Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
 
                 fulfilledBy {
                     relevantActivityHasLogging({ relevantActivities(it) })
@@ -292,18 +277,13 @@ project {
                     "Products with digital elements shall provide the possibility for users to securely and easily remove on a permanent basis all data and settings and, where such data can be transferred to other products or systems, ensure that this is done in a secure manner."
 
                 fulfilledBy {
-                    with(BSI_TR02102()) {
-                        secureHttpRequests() and
-                                secureHttpResponses()
-                    } and
-                            allowDeletionOfData(
+                    with(BSI_TR02102()) { secureHttpRequests() and secureHttpResponses() } and
+                        allowDeletionOfData(
                                 trigger = { false },
                                 getIdentity = { null },
-                                dataSinks = sinksHoldingUserData({
-                                    personalDataSources(it)
-                                }),
+                                dataSinks = sinksHoldingUserData({ personalDataSources(it) }),
                             )
-                                .withMetricId("SecureDataDeletionMechanismActivated")
+                            .withMetricId("SecureDataDeletionMechanismActivated")
                 }
             }
         }
