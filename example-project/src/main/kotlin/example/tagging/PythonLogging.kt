@@ -47,6 +47,7 @@ fun TaggingContext.tagLoggingGetLogger() {
     }
 }
 
+
 fun TaggingContext.tagLoggingInfo() {
     each<CallExpression>("logging.info").with {
         val log =

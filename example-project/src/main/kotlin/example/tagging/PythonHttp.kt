@@ -45,9 +45,10 @@ fun TaggingContext.tagHttpRequestsGet() {
         val httpClient =
             node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
                 ?: HttpClientWithProtocol(
-                    protocol = if(url?.startsWith("https://") == true) {
-                        TLS(underlyingNode = urlArg)
-                    } else null,
+                    protocol =
+                        if (url?.startsWith("https://") == true) {
+                            TLS(underlyingNode = urlArg)
+                        } else null,
                     underlyingNode = node,
                     authenticity = null,
                 )
@@ -78,9 +79,10 @@ fun TaggingContext.tagHttpRequestsPost() {
         val httpClient =
             node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
                 ?: HttpClientWithProtocol(
-                    protocol = if(url?.startsWith("https://") == true) {
-                        TLS(underlyingNode = urlArg)
-                    } else null,
+                    protocol =
+                        if (url?.startsWith("https://") == true) {
+                            TLS(underlyingNode = urlArg)
+                        } else null,
                     underlyingNode = node,
                     authenticity = null,
                 )
@@ -111,9 +113,10 @@ fun TaggingContext.tagHttpRequestsDelete() {
         val httpClient =
             node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
                 ?: HttpClientWithProtocol(
-                    protocol = if(url?.startsWith("https://") == true) {
-                        TLS(underlyingNode = urlArg)
-                    } else null,
+                    protocol =
+                        if (url?.startsWith("https://") == true) {
+                            TLS(underlyingNode = urlArg)
+                        } else null,
                     underlyingNode = node,
                     authenticity = null,
                 )
@@ -144,9 +147,10 @@ fun TaggingContext.tagHttpRequestsPut() {
         val httpClient =
             node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
                 ?: HttpClientWithProtocol(
-                    protocol = if(url?.startsWith("https://") == true) {
-                        TLS(underlyingNode = urlArg)
-                    } else null,
+                    protocol =
+                        if (url?.startsWith("https://") == true) {
+                            TLS(underlyingNode = urlArg)
+                        } else null,
                     underlyingNode = node,
                     authenticity = null,
                 )

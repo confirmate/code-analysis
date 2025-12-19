@@ -28,8 +28,10 @@ import de.fraunhofer.aisec.cpg.passes.concepts.with
  * enabled.
  */
 fun TaggingContext.tagPbkdf2AsIdentity() {
-    // TODO: Check again if this makes sense; The current approach would make more sense when using PasswordBasedAuthentication.
-    //  Since the Identity concept seems more high-level, another idea would be to tag against a config value
+    // TODO: Check again if this makes sense; The current approach would make more sense when using
+    // PasswordBasedAuthentication.
+    //  Since the Identity concept seems more high-level, another idea would be to tag against a
+    // config value
     each<CallExpression>("hashlib.pbkdf2_hmac").with {
         // TODO: blocked because of StackOverFlowError -> problem with hashCode
         IdentityWithPasswordPolicy(disablePasswordPolicy = false, underlyingNode = null).apply {
