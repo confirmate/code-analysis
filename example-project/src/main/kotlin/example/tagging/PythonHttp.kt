@@ -19,10 +19,10 @@ package example.tagging
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
-import de.fraunhofer.aisec.cpg.graph.concepts.http.HttpMethod
-import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.HttpClientWithProtocol
-import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.HttpRequestWithArguments
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.TLS
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpClient
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpMethod
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpRequest
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -43,22 +43,22 @@ fun TaggingContext.tagHttpRequestsGet() {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
-            node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
-                ?: HttpClientWithProtocol(
+            node.overlays.filterIsInstance<HttpClient>().singleOrNull()
+                ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
                             TLS(underlyingNode = urlArg)
                         } else null,
+                    isTLS = false,
                     underlyingNode = node,
                     authenticity = null,
                 )
 
-        HttpRequestWithArguments(
+        HttpRequest(
                 arguments =
                     if (node.arguments.size == 1) listOf()
                     else node.arguments.subList(1, node.arguments.size - 1),
-                httpMethod = HttpMethod.GET,
-                url = url,
+                method = HttpMethod.GET,
                 call = null,
                 reqBody = null,
                 httpEndpoint = null,
@@ -77,22 +77,22 @@ fun TaggingContext.tagHttpRequestsPost() {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
-            node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
-                ?: HttpClientWithProtocol(
+            node.overlays.filterIsInstance<HttpClient>().singleOrNull()
+                ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
                             TLS(underlyingNode = urlArg)
                         } else null,
+                    isTLS = false,
                     underlyingNode = node,
                     authenticity = null,
                 )
 
-        HttpRequestWithArguments(
+        HttpRequest(
                 arguments =
                     if (node.arguments.size == 1) listOf()
                     else node.arguments.subList(1, node.arguments.size - 1),
-                httpMethod = HttpMethod.POST,
-                url = url,
+                method = HttpMethod.POST,
                 call = null,
                 reqBody = null,
                 httpEndpoint = null,
@@ -111,22 +111,22 @@ fun TaggingContext.tagHttpRequestsDelete() {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
-            node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
-                ?: HttpClientWithProtocol(
+            node.overlays.filterIsInstance<HttpClient>().singleOrNull()
+                ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
                             TLS(underlyingNode = urlArg)
                         } else null,
+                    isTLS = false,
                     underlyingNode = node,
                     authenticity = null,
                 )
 
-        HttpRequestWithArguments(
+        HttpRequest(
                 arguments =
                     if (node.arguments.size == 1) listOf()
                     else node.arguments.subList(1, node.arguments.size - 1),
-                httpMethod = HttpMethod.DELETE,
-                url = url,
+                method = HttpMethod.DELETE,
                 call = null,
                 reqBody = null,
                 httpEndpoint = null,
@@ -145,22 +145,22 @@ fun TaggingContext.tagHttpRequestsPut() {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
-            node.overlays.filterIsInstance<HttpClientWithProtocol>().singleOrNull()
-                ?: HttpClientWithProtocol(
+            node.overlays.filterIsInstance<HttpClient>().singleOrNull()
+                ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
                             TLS(underlyingNode = urlArg)
                         } else null,
+                    isTLS = false,
                     underlyingNode = node,
                     authenticity = null,
                 )
 
-        HttpRequestWithArguments(
+        HttpRequest(
                 arguments =
                     if (node.arguments.size == 1) listOf()
                     else node.arguments.subList(1, node.arguments.size - 1),
-                httpMethod = HttpMethod.PUT,
-                url = url,
+                method = HttpMethod.PUT,
                 call = null,
                 reqBody = null,
                 httpEndpoint = null,
