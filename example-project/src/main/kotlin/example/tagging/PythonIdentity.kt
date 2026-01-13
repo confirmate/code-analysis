@@ -18,6 +18,7 @@ package example.tagging
 
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Identity
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
@@ -33,11 +34,33 @@ fun TaggingContext.tagPbkdf2AsIdentity() {
     //  Since the Identity concept seems more high-level, another idea would be to tag against a
     // config value
     each<CallExpression>("hashlib.pbkdf2_hmac").with {
-        // TODO: blocked because of StackOverFlowError -> problem with hashCode
-        IdentityWithPasswordPolicy(disablePasswordPolicy = false, underlyingNode = null).apply {
-            this.codeAndLocationFrom(node)
-            this.name = Name(node.name.localName)
-        }
+        Identity(
+                disablePasswordPolicy = false,
+                underlyingNode = null,
+                enforceMFA = false,
+                lastActivity = null,
+                loginDefenderEnabled = false,
+                privileged = false,
+                activated = false,
+                authenticity = null,
+                authorization = null,
+                internetAccessibleEndpoint = false,
+                geoLocation = null,
+                loggings = mutableListOf(),
+                redundancies = null,
+                usageStatistics = null,
+                creation_time = null,
+                description = null,
+                resourceId = null,
+                labels = null,
+                name = null,
+                raw = null,
+                parent = null,
+            )
+            .apply {
+                this.codeAndLocationFrom(node)
+                this.name = Name(node.name.localName)
+            }
     }
 }
 

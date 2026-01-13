@@ -19,8 +19,6 @@ package example.tagging
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
-import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.Encrypt
-import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.SymmetricCipher
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
@@ -35,6 +33,9 @@ fun TaggingContext.tagEncryption() {
         // Create a SymmetricCipher for Fernet (AES-128 in CBC mode)
         val cipher =
             SymmetricCipher(
+                    authTagSize = null,
+                    modus = "CBC",
+                    initializationVector = null,
                     blockSize = 128,
                     cipherName = "AES-128-CBC",
                     keySize = 256,
@@ -46,8 +47,7 @@ fun TaggingContext.tagEncryption() {
                     this.name = Name("Fernet")
                 }
 
-        // Create an Encryption concept
-        object : Encryption(basedOn = cipher, secret = null, underlyingNode = node) {}.apply {
+        Encryption(basedOn = cipher, secret = null, underlyingNode = node).apply {
             this.codeAndLocationFrom(node)
         }
     }
@@ -69,6 +69,9 @@ fun TaggingContext.tagEncryptionOperation() {
                             Encryption(
                                 basedOn =
                                     SymmetricCipher(
+                                        authTagSize = null,
+                                        modus = "CBC",
+                                        initializationVector = null,
                                         blockSize = 128,
                                         cipherName = "AES-128-CBC",
                                         keySize = 256,
@@ -87,7 +90,7 @@ fun TaggingContext.tagEncryptionOperation() {
 
             // Create an Encrypt operation
             listOf(
-                Encrypt(
+                EncryptionOperation(
                         algorithm = "Fernet",
                         secret = null,
                         linkedConcept = encryption,

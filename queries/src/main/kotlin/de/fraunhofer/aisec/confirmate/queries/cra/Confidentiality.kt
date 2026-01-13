@@ -27,8 +27,8 @@ import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
-import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.concepts.file.WriteFile
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.query.*
 
 /**
@@ -84,19 +84,19 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
         )
 
     // The data must be encrypted and the encryption must be state of the art
-    return writtenDataIsEncrypted
-    relevantEncryptOperations
-        .map {
-            (it.concept as? Cipher)?.conformsToStateOfTheArt()
-                ?: QueryTree(
-                    value = false,
-                    stringRepresentation =
-                        "Missing Cipher concept related to an encryption operation.",
-                    node = it,
-                    operator = GenericQueryOperators.EVALUATE,
-                )
-        }
-        .mergeWithAll()
+    return writtenDataIsEncrypted and
+        relevantEncryptOperations
+            .map {
+                (it.concept as? Cipher)?.conformsToStateOfTheArt()
+                    ?: QueryTree(
+                        value = false,
+                        stringRepresentation =
+                            "Missing Cipher concept related to an encryption operation.",
+                        node = it,
+                        operator = GenericQueryOperators.EVALUATE,
+                    )
+            }
+            .mergeWithAll()
 }
 
 context(cryptoCatalog: CryptoCatalog)
@@ -142,9 +142,7 @@ fun secureHttpRequests(): QueryTree<Boolean> =
 
         // Check if all arguments of the request are encrypted before the request is sent
         val dataEncryptedBeforeRequest =
-            it.arguments
-                .map { arg -> arg.alwaysCorrectlyEncrypted() }
-                .mergeWithAll()
+            it.arguments.map { arg -> arg.alwaysCorrectlyEncrypted() }.mergeWithAll()
 
         // We need a secure channel or the data must be encrypted before sending
         secureChannel or dataEncryptedBeforeRequest

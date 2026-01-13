@@ -26,7 +26,7 @@ import de.fraunhofer.aisec.cpg.graph.followPrevCDGUntilHit
 import de.fraunhofer.aisec.cpg.query.*
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.QueryTree
-import java.time.Duration
+import kotlin.time.Duration
 
 context(translationResult: TranslationResult)
 fun updatesEnabled(): QueryTree<Boolean> {

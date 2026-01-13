@@ -41,29 +41,28 @@ fun TaggingContext.tagDatabaseAdd() {
         )
         .with {
             val dbStorage =
-                object :
-                        DatabaseStorage(
-                            timeToLiveSeconds = null,
-                            hasAutomatedCleanup = false,
-                            activityLogging = null,
-                            atRestEncryption = null,
-                            backups = mutableListOf(),
-                            immutability = null,
-                            resourceLogging = null,
-                            internetAccessibleEndpoint = null,
-                            geoLocation = null,
-                            loggings = mutableListOf(),
-                            redundancies = null,
-                            usageStatistics = null,
-                            creation_time = null,
-                            description = "Database",
-                            resourceId = "",
-                            labels = null,
-                            name = "database",
-                            raw = null,
-                            parent = null,
-                            underlyingNode = node,
-                        ) {}
+                DatabaseStorage(
+                        timeToLiveSeconds = null,
+                        hasAutomatedCleanup = false,
+                        activityLogging = null,
+                        atRestEncryption = null,
+                        backups = mutableListOf(),
+                        immutability = null,
+                        resourceLogging = null,
+                        internetAccessibleEndpoint = null,
+                        geoLocation = null,
+                        loggings = mutableListOf(),
+                        redundancies = null,
+                        usageStatistics = null,
+                        creation_time = null,
+                        description = "Database",
+                        resourceId = "",
+                        labels = null,
+                        name = "database",
+                        raw = null,
+                        parent = null,
+                        underlyingNode = node,
+                    )
                     .apply { this.codeAndLocationFrom(node) }
 
             DatabaseQuery(

@@ -14,12 +14,13 @@ def get_passwords(user_id):
 
 def add_password(user_id, data):
     user = User.query.get(user_id)
-    new_password = Password(
-        user_id=user_id,
-        website=data['website'],
-        username=data['username'],
-        encrypted_password=encrypt_password(data['password'], user.master_password_hash)
-    )
+    encrypted_pwd = encrypt_password(data['password'], user.master_password_hash)
+    new_password = Password()
+    new_password.user_id = user.id
+    new_password.website = data['website']
+    new_password.username = data['username']
+    new_password.encrypted_password = encrypted_pwd
+
     db.session.add(new_password)
     db.session.commit()
     return {

@@ -20,9 +20,11 @@ import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.TLS
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Cipher
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpClient
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpMethod
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpRequest
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Secret
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
@@ -47,7 +49,35 @@ fun TaggingContext.tagHttpRequestsGet() {
                 ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
-                            TLS(underlyingNode = urlArg)
+                            TLS(
+                                versionNumber = 1.2f,
+                                cipherSuites = mutableListOf(),
+                                basedOn = Cipher(null, null, null, null, null),
+                                secret =
+                                    Secret(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        mutableListOf(),
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                    ),
+                                underlyingNode = urlArg!!,
+                            )
                         } else null,
                     isTLS = false,
                     underlyingNode = node,
@@ -81,7 +111,35 @@ fun TaggingContext.tagHttpRequestsPost() {
                 ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
-                            TLS(underlyingNode = urlArg)
+                            TLS(
+                                versionNumber = 1.2f,
+                                cipherSuites = mutableListOf(),
+                                basedOn = Cipher(null, null, null, null, null),
+                                secret =
+                                    Secret(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        mutableListOf(),
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                    ),
+                                underlyingNode = urlArg!!,
+                            )
                         } else null,
                     isTLS = false,
                     underlyingNode = node,
@@ -115,7 +173,35 @@ fun TaggingContext.tagHttpRequestsDelete() {
                 ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
-                            TLS(underlyingNode = urlArg)
+                            TLS(
+                                versionNumber = 1.2f,
+                                cipherSuites = mutableListOf(),
+                                basedOn = Cipher(null, null, null, null, null),
+                                secret =
+                                    Secret(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        mutableListOf(),
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                    ),
+                                underlyingNode = urlArg!!,
+                            )
                         } else null,
                     isTLS = false,
                     underlyingNode = node,
@@ -149,7 +235,35 @@ fun TaggingContext.tagHttpRequestsPut() {
                 ?: HttpClient(
                     protocol =
                         if (url?.startsWith("https://") == true) {
-                            TLS(underlyingNode = urlArg)
+                            TLS(
+                                versionNumber = 1.2f,
+                                cipherSuites = mutableListOf(),
+                                basedOn = Cipher(null, null, null, null, null),
+                                secret =
+                                    Secret(
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        mutableListOf(),
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                    ),
+                                underlyingNode = urlArg!!,
+                            )
                         } else null,
                     isTLS = false,
                     underlyingNode = node,

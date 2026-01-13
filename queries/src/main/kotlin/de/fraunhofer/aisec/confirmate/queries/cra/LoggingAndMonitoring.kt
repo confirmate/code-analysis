@@ -181,9 +181,9 @@ fun relevantActivityHasLoggingWithMeaningfulMessage(
 }
 
 /**
- * Checks whether [this] [LogWrite] would actually be executed based on the configured
- * log level for the underlying logger. The information has to be set beforehand in the [Logging] node
- * related to [this].
+ * Checks whether [this] [LogWrite] would actually be executed based on the configured log level for
+ * the underlying logger. The information has to be set beforehand in the [Logging] node related to
+ * [this].
  */
 val LogWrite.isLevelEnabled: Boolean
     get() {

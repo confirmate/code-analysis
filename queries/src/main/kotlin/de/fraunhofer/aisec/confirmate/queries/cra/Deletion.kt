@@ -26,8 +26,8 @@ import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.allChildrenWithOverlays
 import de.fraunhofer.aisec.cpg.graph.collectAllNextDFGPaths
-import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.concepts.file.DeleteFile
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.May
 import de.fraunhofer.aisec.cpg.query.Must
@@ -95,16 +95,16 @@ fun deleteDatabaseEntriesOnAllPaths(
 
 fun DatabaseQuery.deletesData(triggeringUser: Identity?): Boolean {
     return this.calls?.any { it.name.localName.contains("delete", ignoreCase = true) } == true &&
-            (this.parameters.any { param ->
-                param == triggeringUser ||
-                    dataFlow(
-                            startNode = param,
-                            type = May,
-                            direction = Backward(GraphToFollow.DFG),
-                            predicate = { it == triggeringUser },
-                        )
-                        .value
-            } ||
+        (this.parameters.any { param ->
+            param == triggeringUser ||
+                dataFlow(
+                        startNode = param,
+                        type = May,
+                        direction = Backward(GraphToFollow.DFG),
+                        predicate = { it == triggeringUser },
+                    )
+                    .value
+        } ||
             dataFlow(
                     startNode = this,
                     type = May,
