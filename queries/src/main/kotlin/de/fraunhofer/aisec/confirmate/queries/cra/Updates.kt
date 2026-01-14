@@ -50,11 +50,12 @@ context(translationResult: TranslationResult)
 fun updateIntervalSmallEnough(maxUpdateInterval: Duration): QueryTree<Boolean> {
     return translationResult.allExtended<AutomaticUpdates> {
         it.interval?.let { interval ->
-            (interval.seconds le maxUpdateInterval.seconds).apply {
+            (interval.inWholeSeconds le maxUpdateInterval.inWholeSeconds).apply {
                 stringRepresentation =
-                    if (value) "The update interval is ${interval.seconds} seconds which is ok."
+                    if (value)
+                        "The update interval is ${interval.inWholeSeconds} seconds which is ok."
                     else
-                        "The update interval is ${interval.seconds} seconds which is larger than the maximal accepted interval of ${maxUpdateInterval.seconds} seconds."
+                        "The update interval is ${interval.inWholeSeconds} seconds which is larger than the maximal accepted interval of ${maxUpdateInterval.inWholeSeconds} seconds."
             }
         }
             ?: QueryTree(

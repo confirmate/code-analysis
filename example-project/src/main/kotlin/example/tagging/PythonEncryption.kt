@@ -30,7 +30,6 @@ import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
 fun TaggingContext.tagEncryption() {
     each<CallExpression>("Fernet").with {
-        // Create a SymmetricCipher for Fernet (AES-128 in CBC mode)
         val cipher =
             SymmetricCipher(
                     authTagSize = null,
@@ -56,50 +55,41 @@ fun TaggingContext.tagEncryption() {
 /** Tagging for Fernet encrypt calls */
 fun TaggingContext.tagEncryptionOperation() {
     each<MemberCallExpression>(predicate = { it.name.localName == "encrypt" }).withMultiple {
-        // Get the callee (MemberExpression: fernet.encrypt)
         val callee = node.callee as? MemberExpression
         val base = callee?.base
 
         if (callee != null && base != null) {
-            // Get the Encryption concept from the base
-            val encryption =
-                base.overlays.filterIsInstance<Encryption>().singleOrNull()
-                    ?: // Fallback: create one if it doesn't exist
-                    object :
-                            Encryption(
-                                basedOn =
-                                    SymmetricCipher(
-                                        authTagSize = null,
-                                        modus = "CBC",
-                                        initializationVector = null,
-                                        blockSize = 128,
-                                        cipherName = "AES-128-CBC",
-                                        keySize = 256,
-                                        padding = null,
-                                        underlyingNode = base,
-                                    ),
-                                secret = null,
-                                underlyingNode = base,
-                            ) {}
+            val cipher =
+                base.overlays.filterIsInstance<Encryption>().singleOrNull()?.basedOn
+                    ?: // Fallback: create a cipher if it doesn't exist
+                    SymmetricCipher(
+                            authTagSize = null,
+                            modus = "CBC",
+                            initializationVector = null,
+                            blockSize = 128,
+                            cipherName = "AES-128-CBC",
+                            keySize = 256,
+                            padding = null,
+                            underlyingNode = base,
+                        )
                         .apply { this.codeAndLocationFrom(base) }
 
-            // Propagate the cipher to the data being encrypted (first argument)
-            if (node.arguments.isNotEmpty() && encryption.basedOn != null) {
-                propagate { node.arguments[0] }.with { encryption.basedOn!! }
+            // Propagate the cipher to the data being encrypted
+            if (node.arguments.isNotEmpty()) {
+                propagate { node.arguments[0] }.with { cipher }
             }
 
-            // Create an Encrypt operation
             listOf(
-                EncryptionOperation(
-                        algorithm = "Fernet",
-                        secret = null,
-                        linkedConcept = encryption,
-                        underlyingNode = node,
-                    )
-                    .apply {
-                        this.codeAndLocationFrom(node)
-                        this.name = Name("Fernet.encrypt")
-                    }
+                                Encrypt(
+                                        algorithm = "Fernet",
+                                        secret = null,
+                                        linkedConcept = cipher,
+                                        underlyingNode = node,
+                                    )
+                                    .apply {
+                                        this.codeAndLocationFrom(node)
+                                        this.name = Name("Fernet.encrypt")
+                                    }
             )
         } else {
             emptyList()
@@ -107,7 +97,6 @@ fun TaggingContext.tagEncryptionOperation() {
     }
 }
 
-/** Main tagging function for Python encryption operations. */
 fun TaggingContext.tagPythonEncryption() {
     tagEncryption()
     tagEncryptionOperation()

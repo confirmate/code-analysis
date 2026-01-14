@@ -66,15 +66,14 @@ fun dataEncryptedBeforePersisting(
 
 context(cryptoCatalog: CryptoCatalog)
 fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
-    val relevantEncryptOperations = mutableListOf<EncryptionOperation>()
+    val relevantEncryptOperations = mutableListOf<Encrypt>()
     val writtenDataIsEncrypted =
         dataFlow(
             startNode = this,
             direction = Backward(GraphToFollow.DFG),
             scope = Interprocedural(),
             predicate = { enc ->
-                // TODO: Should be an encryption, not any operation (i.e., decryption)
-                if (enc is EncryptionOperation) {
+                if (enc is Encrypt) {
                     relevantEncryptOperations.add(enc)
                     true
                 } else {
@@ -87,6 +86,7 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
     return writtenDataIsEncrypted and
         relevantEncryptOperations
             .map {
+                // CipherOperation.concept is directly a Cipher
                 (it.concept as? Cipher)?.conformsToStateOfTheArt()
                     ?: QueryTree(
                         value = false,
