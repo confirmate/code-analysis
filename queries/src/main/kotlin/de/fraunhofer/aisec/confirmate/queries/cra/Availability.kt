@@ -55,8 +55,7 @@ fun endpointsHaveSizeLimiting(): QueryTree<Boolean> {
     return translationResult.allExtended<HttpEndpoint> {
         val result =
             QueryTree(
-                value =
-                        (it.userInput.isEmpty() || it.maxInputSize != null),
+                value = (it.userInput.isEmpty() || it.maxInputSize != null),
                 stringRepresentation =
                     if (it.userInput.isEmpty()) {
                         "Endpoint ${it.name} does not receive any inputs from users."

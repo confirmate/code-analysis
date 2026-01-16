@@ -22,6 +22,7 @@ import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.propagate
@@ -43,7 +44,7 @@ fun TaggingContext.tagEncryption() {
                 )
                 .apply {
                     this.codeAndLocationFrom(node)
-                    this.name = Name("Fernet")
+                    this.name = Name(node.name.localName)
                 }
 
         Encryption(basedOn = cipher, secret = null, underlyingNode = node).apply {
@@ -55,45 +56,40 @@ fun TaggingContext.tagEncryption() {
 /** Tagging for Fernet encrypt calls */
 fun TaggingContext.tagEncryptionOperation() {
     each<MemberCallExpression>(predicate = { it.name.localName == "encrypt" }).withMultiple {
-        val callee = node.callee as? MemberExpression
-        val base = callee?.base
-
+        val cipher =
+            node.overlays.filterIsInstance<Encryption>().singleOrNull()?.basedOn
+                ?: // Fallback: create a cipher if it doesn't exist
+                SymmetricCipher(
+                        authTagSize = null,
+                        modus = "CBC",
+                        initializationVector = null,
+                        blockSize = 128,
+                        cipherName = "AES-128-CBC",
+                        keySize = 256,
+                        padding = null,
+                        underlyingNode = node,
+                    )
+                    .apply { this.codeAndLocationFrom(node) }
+        val encodeCall = node.arguments.firstOrNull() as? MemberCallExpression
+        val callee = encodeCall?.callee as? MemberExpression
+        val base = callee?.base as? Reference
         if (callee != null && base != null) {
-            val cipher =
-                base.overlays.filterIsInstance<Encryption>().singleOrNull()?.basedOn
-                    ?: // Fallback: create a cipher if it doesn't exist
-                    SymmetricCipher(
-                            authTagSize = null,
-                            modus = "CBC",
-                            initializationVector = null,
-                            blockSize = 128,
-                            cipherName = "AES-128-CBC",
-                            keySize = 256,
-                            padding = null,
-                            underlyingNode = base,
+            propagate { base }
+                .with {
+                    Encrypt(
+                            algorithm = "Fernet",
+                            secret = null,
+                            linkedConcept = cipher,
+                            underlyingNode = node,
                         )
-                        .apply { this.codeAndLocationFrom(base) }
-
-            // Propagate the cipher to the data being encrypted
-            if (node.arguments.isNotEmpty()) {
-                propagate { node.arguments[0] }.with { cipher }
-            }
-
-            listOf(
-                                Encrypt(
-                                        algorithm = "Fernet",
-                                        secret = null,
-                                        linkedConcept = cipher,
-                                        underlyingNode = node,
-                                    )
-                                    .apply {
-                                        this.codeAndLocationFrom(node)
-                                        this.name = Name("Fernet.encrypt")
-                                    }
-            )
-        } else {
-            emptyList()
+                        .apply {
+                            this.codeAndLocationFrom(node)
+                            this.name = Name(node.name.localName)
+                            this.prevDFG += node
+                        }
+                }
         }
+        listOf()
     }
 }
 

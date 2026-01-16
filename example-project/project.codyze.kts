@@ -43,8 +43,7 @@ project {
         architecture {
             modules {
                 module("test-module") {
-                    directory = "src/main/resources/toe"
-                    include("vibe-pythonpass")
+                    directory = "src/main/resources/toe/vibe-pythonpass"
                 }
             }
         }
