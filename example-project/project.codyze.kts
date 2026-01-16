@@ -34,7 +34,15 @@ include { Tagging from "tagging.codyze.kts" }
 project {
     name = "Password Manager"
 
-    tool { configuration { registerPass<PythonFileConceptPass>() } }
+    tool {
+        configuration {
+            registerPass<PythonFileConceptPass>()
+            // Using pythonLogging tagging logic for now, since PythoNloggingConceptPass does not
+            // set
+            // all required properties
+            // registerPass<PythonLoggingConceptPass>()
+        }
+    }
 
     toe {
         name = "Password Manager"

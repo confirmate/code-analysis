@@ -26,55 +26,127 @@ import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 
 /**
- * Tagging for Python SQLAlchemy database operations Tags db.session.add() calls as
- * DatabaseQueryWithInput
+ * Tagging for Python sqlalchemy write operations:
+ * - db.session.add()
+ * - db.session.commit()
  */
-fun TaggingContext.tagDatabaseAdd() {
-    each<MemberCallExpression>( "db.session.add")
+fun TaggingContext.tagDatabaseWrite() {
+    // db.session.add()
+    each<MemberCallExpression>(
+            predicate = {
+                it.name.localName == "add" &&
+                    (it.callee as? MemberExpression)?.base?.name?.localName == "session"
+            }
+        )
         .with {
-            val dbStorage =
-                DatabaseStorage(
-                        timeToLiveSeconds = null,
-                        hasAutomatedCleanup = false,
-                        activityLogging = null,
-                        atRestEncryption = null,
-                        backups = mutableListOf(),
-                        immutability = null,
-                        resourceLogging = null,
-                        internetAccessibleEndpoint = null,
-                        geoLocation = null,
-                        loggings = mutableListOf(),
-                        redundancies = null,
-                        usageStatistics = null,
-                        creation_time = null,
-                        description = "Database",
-                        resourceId = "",
-                        labels = null,
-                        name = "database",
-                        raw = null,
-                        parent = null,
-                        underlyingNode = node,
-                    )
-                    .apply { this.codeAndLocationFrom(node) }
+            val dbStorage = getOrCreateDatabaseStorage(node)
+            createDatabaseQuery(node, dbStorage, isModify = true)
+        }
 
-            DatabaseQuery(
-                    parameters =
-                        node.arguments,
-                    modify = true, // This is a write operation
-                    calls = null,
-                    databaseService = null,
-                    storage = dbStorage,
-                    linkedConcept = dbStorage,
-                    underlyingNode = node,
-                )
-                .apply {
-                    this.codeAndLocationFrom(node)
-                    this.name = Name(node.name.localName)
-                }
+    // db.session.commit()
+    each<MemberCallExpression>(
+            predicate = {
+                it.name.localName == "commit" &&
+                    (it.callee as? MemberExpression)?.base?.name?.localName == "session"
+            }
+        )
+        .with {
+            val dbStorage = getOrCreateDatabaseStorage(node)
+            createDatabaseQuery(node, dbStorage, isModify = true)
         }
 }
 
-/** Main tagging function for Python database operations */
+/**
+ * Tagging for python sqlalchemy read operations:
+ * - Model.query.filter_by()
+ * - Model.query.filter()
+ * - Model.query.get()
+ * - Model.query.all()
+ * - Model.query.first()
+ */
+fun TaggingContext.tagDatabaseRead() {
+    each<MemberCallExpression>("*.query.filter_by").with {
+        val dbStorage = getOrCreateDatabaseStorage(node)
+        createDatabaseQuery(node, dbStorage, isModify = false)
+    }
+
+    each<MemberCallExpression>("*.query.filter").with {
+        val dbStorage = getOrCreateDatabaseStorage(node)
+        createDatabaseQuery(node, dbStorage, isModify = false)
+    }
+
+    each<MemberCallExpression>("*.query.get").with {
+        val dbStorage = getOrCreateDatabaseStorage(node)
+        createDatabaseQuery(node, dbStorage, isModify = false)
+    }
+
+    each<MemberCallExpression>("*.query.all").with {
+        val dbStorage = getOrCreateDatabaseStorage(node)
+        createDatabaseQuery(node, dbStorage, isModify = false)
+    }
+
+    each<MemberCallExpression>("*.query.first").with {
+        val dbStorage = getOrCreateDatabaseStorage(node)
+        createDatabaseQuery(node, dbStorage, isModify = false)
+    }
+}
+
+/** Shared [DatabaseStorage] concept * */
+private var databaseStorage: DatabaseStorage? = null
+
+/** Get or create a [DatabaseStorage] concept */
+private fun getOrCreateDatabaseStorage(node: MemberCallExpression): DatabaseStorage {
+    return databaseStorage
+        ?: DatabaseStorage(
+                timeToLiveSeconds = null,
+                hasAutomatedCleanup = false,
+                activityLogging = null,
+                atRestEncryption = null,
+                backups = mutableListOf(),
+                immutability = null,
+                resourceLogging = null,
+                internetAccessibleEndpoint = null,
+                geoLocation = null,
+                loggings = mutableListOf(),
+                redundancies = null,
+                usageStatistics = null,
+                creation_time = null,
+                description = "Database",
+                resourceId = "",
+                labels = null,
+                name = "database",
+                raw = null,
+                parent = null,
+                underlyingNode = node,
+            )
+            .apply {
+                this.codeAndLocationFrom(node)
+                databaseStorage = this
+            }
+}
+
+/** Helper to create a [DatabaseQuery] operation */
+private fun createDatabaseQuery(
+    node: MemberCallExpression,
+    storage: DatabaseStorage,
+    isModify: Boolean,
+): DatabaseQuery {
+    return DatabaseQuery(
+            parameters = node.arguments,
+            modify = isModify,
+            calls = null,
+            databaseService = null,
+            storage = storage,
+            linkedConcept = storage,
+            underlyingNode = node,
+        )
+        .apply {
+            this.codeAndLocationFrom(node)
+            this.name = Name(node.name.localName)
+        }
+}
+
 fun TaggingContext.tagPythonDatabase() {
-    tagDatabaseAdd()
+    tagDatabaseWrite()
+    tagDatabaseRead()
 }

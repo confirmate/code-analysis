@@ -16,68 +16,93 @@
  */
 package example.tagging
 
-import de.fraunhofer.aisec.cpg.graph.Name
-import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
+import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogGet
+import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogWrite
+import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogging
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.evaluate
+import de.fraunhofer.aisec.cpg.graph.followPrevFullDFGEdgesUntilHit
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 
-fun TaggingContext.tagLoggingGetLogger() {
-    each<CallExpression>("logging.getLogger").with {
-        node.overlays.filterIsInstance<Logging>().singleOrNull()
-            ?: Logging(
-                    logLevelThreshold = LogLevel.INFO,
-                    enabled = true,
-                    monitoringEnabled = false,
-                    name = node.arguments.firstOrNull()?.evaluate() as? String,
-                    retentionPeriod = null,
-                    securityAlertsEnabled = false,
-                    loggingService = null,
-                    underlyingNode = node,
-                )
-                .apply {
-                    this.codeAndLocationFrom(node)
-                    this.name = Name(node.name.localName)
-                }
-    }
-}
+/**
+ * Storage connecting logger names with [Logging] concepts. Used to connect logging calls to the
+ * matching [Logging].
+ */
+private val loggers = mutableMapOf<String, Logging>()
 
-fun TaggingContext.tagLoggingInfo() {
-    each<CallExpression>("logging.info").with {
-        val log =
-            node.overlays.filterIsInstance<Logging>().singleOrNull()
-                ?: Logging(
-                        logLevelThreshold = LogLevel.INFO,
-                        enabled = true,
-                        monitoringEnabled = false,
-                        name = "logging",
-                        retentionPeriod = null,
-                        securityAlertsEnabled = false,
-                        loggingService = null,
-                        underlyingNode = null,
-                    )
-                    .apply {
-                        this.codeAndLocationFrom(node)
-                        this.name = Name("logging")
-                    }
-
-        LogWrite(
-                logArguments = node.arguments,
-                logLevel = LogLevel.INFO,
-                linkedConcept = log,
-                underlyingNode = null,
-            )
-            .apply {
-                this.codeAndLocationFrom(node)
-                this.name = Name(node.name.localName)
-            }
-    }
-}
-
+/** Tagging for Python logging */
 fun TaggingContext.tagLogging() {
-    tagLoggingGetLogger()
-    tagLoggingInfo()
+    each<CallExpression>("logging.getLogger").with {
+        val loggerName = node.arguments.firstOrNull()?.evaluate() as? String ?: ""
+        val logging =
+            loggers.computeIfAbsent(loggerName) {
+                node.newLogging(
+                    underlyingNode = node,
+                    name = loggerName,
+                    logLevelThreshold = LogLevel.DEBUG,
+                    enabled = true,
+                    connect = true,
+                )
+            }
+        node.newLogGet(underlyingNode = node, concept = logging, connect = true)
+    }
+
+    // Tag logger.info() calls
+    each<CallExpression>(predicate = { it.name.localName == "info" }).with {
+        node.findLogger()?.let { logging ->
+            node.newLogWrite(node, logging, LogLevel.INFO, node.arguments, connect = true)
+        }
+    }
+
+    // Tag logger.debug() calls
+    each<CallExpression>(predicate = { it.name.localName == "debug" }).with {
+        node.findLogger()?.let { logging ->
+            node.newLogWrite(node, logging, LogLevel.DEBUG, node.arguments, connect = true)
+        }
+    }
+
+    // Tag logger.warn() calls
+    each<CallExpression>(predicate = { it.name.localName == "warn" }).with {
+        node.findLogger()?.let { logging ->
+            node.newLogWrite(node, logging, LogLevel.WARN, node.arguments, connect = true)
+        }
+    }
+
+    // Tag logger.error() calls
+    each<CallExpression>(predicate = { it.name.localName == "error" }).with {
+        node.findLogger()?.let { logging ->
+            node.newLogWrite(node, logging, LogLevel.ERROR, node.arguments, connect = true)
+        }
+    }
+}
+
+/** Find the corresponding logger for the given call expression by walking the DFG backwards. */
+private fun CallExpression.findLogger(): Logging? {
+    val callee = this.callee
+    if (callee is MemberExpression) {
+        val base = callee.base
+        val fulfilledPaths =
+            base
+                .followPrevFullDFGEdgesUntilHit(
+                    collectFailedPaths = false,
+                    findAllPossiblePaths = false,
+                ) {
+                    it.overlays.any { overlay -> overlay is LogGet }
+                }
+                .fulfilled
+
+        val foundLoggers =
+            fulfilledPaths
+                .map { path -> path.nodes.last() }
+                .flatMap { it.overlays }
+                .filterIsInstance<LogGet>()
+                .map { it.linkedConcept }
+
+        return foundLoggers.firstOrNull()
+    }
+    return null
 }

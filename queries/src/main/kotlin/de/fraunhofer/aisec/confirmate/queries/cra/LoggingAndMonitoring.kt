@@ -145,8 +145,6 @@ fun relevantActivityHasLogging(
         executionPath(
             startNode = relevantActivity,
             direction = Backward(GraphToFollow.EOG),
-            // TODO: Check why every children contains two paths. First is true, second false. The
-            // latter always creates the same CallExpression three times.
             type = May,
             scope = Interprocedural(maxSteps = 100),
             predicate = { node -> node is LogWrite && node.isLevelEnabled },
