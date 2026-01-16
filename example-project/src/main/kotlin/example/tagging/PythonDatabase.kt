@@ -30,15 +30,7 @@ import de.fraunhofer.aisec.cpg.passes.concepts.with
  * DatabaseQueryWithInput
  */
 fun TaggingContext.tagDatabaseAdd() {
-    each<MemberCallExpression>(
-            predicate = {
-                it.name.localName == "add" &&
-                    // Check if it's db.session.add(...)
-                    (it.callee as? MemberExpression)?.base?.let { base ->
-                        base is MemberExpression && base.name.localName == "session"
-                    } == true
-            }
-        )
+    each<MemberCallExpression>( "db.session.add")
         .with {
             val dbStorage =
                 DatabaseStorage(
@@ -67,7 +59,7 @@ fun TaggingContext.tagDatabaseAdd() {
 
             DatabaseQuery(
                     parameters =
-                        node.arguments, // The objects being added to DB (e.g., new_password)
+                        node.arguments,
                     modify = true, // This is a write operation
                     calls = null,
                     databaseService = null,
@@ -77,7 +69,7 @@ fun TaggingContext.tagDatabaseAdd() {
                 )
                 .apply {
                     this.codeAndLocationFrom(node)
-                    this.name = Name("db.session.add")
+                    this.name = Name(node.name.localName)
                 }
         }
 }

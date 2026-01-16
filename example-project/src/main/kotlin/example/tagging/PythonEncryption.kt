@@ -21,11 +21,8 @@ import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Reference
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
-import de.fraunhofer.aisec.cpg.passes.concepts.propagate
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
@@ -70,26 +67,19 @@ fun TaggingContext.tagEncryptionOperation() {
                         underlyingNode = node,
                     )
                     .apply { this.codeAndLocationFrom(node) }
-        val encodeCall = node.arguments.firstOrNull() as? MemberCallExpression
-        val callee = encodeCall?.callee as? MemberExpression
-        val base = callee?.base as? Reference
-        if (callee != null && base != null) {
-            propagate { base }
-                .with {
-                    Encrypt(
-                            algorithm = "Fernet",
-                            secret = null,
-                            linkedConcept = cipher,
-                            underlyingNode = node,
-                        )
-                        .apply {
-                            this.codeAndLocationFrom(node)
-                            this.name = Name(node.name.localName)
-                            this.prevDFG += node
-                        }
+        listOf(
+            Encrypt(
+                    algorithm = "Fernet",
+                    secret = null,
+                    linkedConcept = cipher,
+                    underlyingNode = node,
+                )
+                .apply {
+                    this.codeAndLocationFrom(node)
+                    this.name = Name(node.name.localName)
+                    this.nextDFG += node
                 }
-        }
-        listOf()
+        )
     }
 }
 

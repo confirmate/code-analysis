@@ -42,9 +42,7 @@ project {
 
         architecture {
             modules {
-                module("test-module") {
-                    directory = "src/main/resources/toe/vibe-pythonpass"
-                }
+                module("test-module") { directory = "src/main/resources/toe/vibe-pythonpass" }
             }
         }
     }
