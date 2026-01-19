@@ -29,7 +29,10 @@ import kotlin.collections.listOf
 import kotlin.time.Duration.Companion.hours
 import kotlin.uuid.ExperimentalUuidApi
 
-include { Tagging from "tagging.codyze.kts" }
+include {
+    Tagging from "tagging.codyze.kts"
+    AssumptionDecisions from "assumptions.codyze.kts"
+}
 
 project {
     name = "Password Manager"
@@ -169,7 +172,14 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled") and
+                        dataEncryptedBeforePersisting(
+                                isPersistentSink = {
+                                    it is WriteFile ||
+                                        (it is DatabaseOperation &&
+                                            it.underlyingNode?.name?.localName != "commit")
+                                }
+                            )
+                            .withMetricId("AtRestEncryptionEnabled") and
                             dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled")
