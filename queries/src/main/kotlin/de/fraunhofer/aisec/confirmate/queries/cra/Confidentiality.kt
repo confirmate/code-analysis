@@ -47,21 +47,36 @@ fun dataEncryptedBeforePersisting(
         (it as? WriteFile)?.what?.let { listOf(it) } ?: (it as? DatabaseQuery)?.parameters
     },
 ): QueryTree<Boolean> {
-    return translationResult.allExtended<Node>(isPersistentSink) {
-        val writtenData =
-            writtenData(it)
-                ?: return@allExtended QueryTree(
-                        value = true,
-                        stringRepresentation = "Missing data written to a persistent location",
-                        node = it,
-                        operator = GenericQueryOperators.EVALUATE,
-                    )
-                    .assume(
-                        AssumptionType.CompletenessAssumption,
-                        "We did not find the data written to the persistent sink which might lead to false positives. This behavior is strange as the sink should typically have a way to persist data.\n\nTo verify this assumption, please check if the sink has indeed no way to persist data. To fix this issue, either specify the way how to identify data (by providing an improved `writtenData` argument or consider removing the sink from the `isPersistentSink` argument.",
-                    )
-        writtenData.map { data -> data.alwaysCorrectlyEncrypted() }.mergeWithAll()
-    }
+    return translationResult
+        .allExtended<Node>(isPersistentSink) {
+            val writtenData =
+                writtenData(it)
+                    ?: return@allExtended QueryTree(
+                            value = true,
+                            stringRepresentation = "Missing data written to a persistent location",
+                            node = it,
+                            operator = GenericQueryOperators.EVALUATE,
+                        )
+                        .assume(
+                            AssumptionType.CompletenessAssumption,
+                            "We did not find the data written to the persistent sink which might lead to false positives. This behavior is strange as the sink should typically have a way to persist data.\n\nTo verify this assumption, please check if the sink has indeed no way to persist data. To fix this issue, either specify the way how to identify data (by providing an improved `writtenData` argument or consider removing the sink from the `isPersistentSink` argument.",
+                        )
+            writtenData
+                .map { data -> data.alwaysCorrectlyEncrypted() }
+                .mergeWithAll()
+                .apply {
+                    stringRepresentation =
+                        if (value) "Data is always encrypted before being persisted to the sink."
+                        else "Data is not always encrypted before being persisted to the sink."
+                }
+        }
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "For each operation persisting data, the data is always encrypted with state of the art algorithms before being persisted."
+                else
+                    "For some operations persisting data, the data is not encrypted with state of the art algorithms before being persisted."
+        }
 }
 
 context(cryptoCatalog: CryptoCatalog)
@@ -69,22 +84,26 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
     val relevantEncryptOperations = mutableListOf<Encrypt>()
     val writtenDataIsEncrypted =
         dataFlow(
-            startNode = this,
-            direction = Backward(GraphToFollow.DFG),
-            type = Must,
-            scope = Interprocedural(),
-            predicate = { enc ->
-                if (enc is Encrypt) {
-                    relevantEncryptOperations.add(enc)
-                    true
-                } else {
-                    false
-                }
-            },
-        )
+                startNode = this,
+                direction = Backward(GraphToFollow.DFG),
+                type = Must,
+                scope = Interprocedural(),
+                predicate = { enc ->
+                    if (enc is Encrypt) {
+                        relevantEncryptOperations.add(enc)
+                        true
+                    } else {
+                        false
+                    }
+                },
+            )
+            .apply {
+                stringRepresentation =
+                    if (value) "Data is always encrypted before being persisted."
+                    else "Data is not always encrypted before being persisted."
+            }
 
-    // The data must be encrypted and the encryption must be state of the art
-    return writtenDataIsEncrypted and
+    val alwaysSotaEncryption =
         relevantEncryptOperations
             .map {
                 // CipherOperation.concept is directly a Cipher
@@ -98,6 +117,22 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
                     )
             }
             .mergeWithAll()
+            .apply {
+                stringRepresentation =
+                    if (value)
+                        "All usages of cryptographic algorithms are compliant with the state of the art."
+                    else
+                        "Some usages of cryptographic algorithms are not compliant with the state of the art."
+            }
+
+    // The data must be encrypted and the encryption must be state of the art
+    return (writtenDataIsEncrypted and alwaysSotaEncryption).apply {
+        stringRepresentation =
+            if (value)
+                "Data is always encrypted using state-of-the-art cryptographic algorithms before being persisted."
+            else
+                "Data is not always encrypted using state-of-the-art cryptographic algorithms before being persisted."
+    }
 }
 
 context(cryptoCatalog: CryptoCatalog)
