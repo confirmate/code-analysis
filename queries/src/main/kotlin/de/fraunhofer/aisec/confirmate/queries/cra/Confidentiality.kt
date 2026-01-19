@@ -71,6 +71,7 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
         dataFlow(
             startNode = this,
             direction = Backward(GraphToFollow.DFG),
+            type = Must,
             scope = Interprocedural(),
             predicate = { enc ->
                 if (enc is Encrypt) {
