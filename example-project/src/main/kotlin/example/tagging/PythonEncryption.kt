@@ -17,7 +17,10 @@
 package example.tagging
 
 import de.fraunhofer.aisec.cpg.graph.Name
+import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
+import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RNG
+import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RngGet
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
@@ -26,23 +29,33 @@ import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
+fun FernetCipher(node: Node) =
+    SymmetricCipher(
+            authTagSize = null,
+            modus = "CBC",
+            initializationVector =
+                InitializationVector(size = 128, underlyingNode = null).apply {
+                    this.isImplicit = true
+                    this.prevDFG.add(
+                        RngGet(rng = RNG(underlyingNode = null), underlyingNode = null).apply {
+                            this.isImplicit = true
+                        }
+                    )
+                },
+            blockSize = 128,
+            cipherName = "AES-128-CBC",
+            keySize = 128,
+            padding = Padding("PKCS7", underlyingNode = null).apply { this.isImplicit = true },
+            underlyingNode = node,
+        )
+        .apply {
+            this.codeAndLocationFrom(node)
+            this.name = Name(node.name.localName)
+        }
+
 fun TaggingContext.tagEncryption() {
     each<CallExpression>("Fernet").with {
-        val cipher =
-            SymmetricCipher(
-                    authTagSize = null,
-                    modus = "CBC",
-                    initializationVector = null,
-                    blockSize = 128,
-                    cipherName = "AES-128-CBC",
-                    keySize = 256,
-                    padding = null,
-                    underlyingNode = node,
-                )
-                .apply {
-                    this.codeAndLocationFrom(node)
-                    this.name = Name(node.name.localName)
-                }
+        val cipher = FernetCipher(node)
 
         Encryption(basedOn = cipher, secret = null, underlyingNode = node).apply {
             this.codeAndLocationFrom(node)
@@ -55,18 +68,7 @@ fun TaggingContext.tagEncryptionOperation() {
     each<MemberCallExpression>(predicate = { it.name.localName == "encrypt" }).withMultiple {
         val cipher =
             node.overlays.filterIsInstance<Encryption>().singleOrNull()?.basedOn
-                ?: // Fallback: create a cipher if it doesn't exist
-                SymmetricCipher(
-                        authTagSize = null,
-                        modus = "CBC",
-                        initializationVector = null,
-                        blockSize = 128,
-                        cipherName = "AES-128-CBC",
-                        keySize = 256,
-                        padding = null,
-                        underlyingNode = node,
-                    )
-                    .apply { this.codeAndLocationFrom(node) }
+                ?: FernetCipher(node) // Fallback: create a cipher if it doesn't exist
         listOf(
             Encrypt(
                     algorithm = "Fernet",
