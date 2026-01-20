@@ -281,16 +281,19 @@ project {
                     " Products with digital elements shall provide security related information by recording and monitoring relevant internal activity, including the access to or modification of data, services or functions, with an opt-out mechanism for the user;"
 
                 fulfilledBy {
-                    relevantActivityHasLogging({ relevantActivities(it) })
-                        .withMetricId("ActivityLoggingEnabled") and
-                        logEntriesHaveTimestamp() and
-                        logEntriesContainInitiator().withMetricId("IdentityRecentActivity") and
-                        loggingOptOut {
-                            false /* There's no opt-out mechanism we can identify. */
-                        } and
-                        loggingEnabledByDefault() and
-                        loggedDataAvailableToUser({ false }, { false })
-                            .withMetricId("SecurityDataAvailableToUser")
+                    listOf(
+                            relevantActivityHasLogging({ relevantActivities(it) })
+                                .withMetricId("ActivityLoggingEnabled"),
+                            logEntriesHaveTimestamp(),
+                            logEntriesContainInitiator().withMetricId("IdentityRecentActivity"),
+                            loggingOptOut {
+                                false /* There's no opt-out mechanism we can identify. */
+                            },
+                            loggingEnabledByDefault(),
+                            loggedDataAvailableToUser({ false }, { false })
+                                .withMetricId("SecurityDataAvailableToUser"),
+                        )
+                        .mergeWithAll()
                 }
             }
 
