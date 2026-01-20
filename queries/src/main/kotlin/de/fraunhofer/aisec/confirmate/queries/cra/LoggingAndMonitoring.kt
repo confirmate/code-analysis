@@ -116,12 +116,19 @@ fun ControlDependence.isOptOutCheck(
                 operator = GenericQueryOperators.EVALUATE,
             )
     return dataFlow(
-        startNode = condition,
-        direction = Backward(GraphToFollow.DFG),
-        type = Must,
-        scope = Interprocedural(),
-        predicate = inputConfiguringOptOut,
-    )
+            startNode = condition,
+            direction = Backward(GraphToFollow.DFG),
+            type = Must,
+            scope = Interprocedural(),
+            predicate = inputConfiguringOptOut,
+        )
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "The condition of the CDG parent branches on an input configuring the logging opt-out"
+                else
+                    "The condition of the CDG parent does not branch on an input configuring the logging opt-out"
+        }
 }
 
 /**
@@ -141,15 +148,28 @@ context(translationResult: TranslationResult)
 fun relevantActivityHasLogging(
     relevantActivitiesSpecifier: ((Node) -> Boolean)
 ): QueryTree<Boolean> {
-    return translationResult.allExtended<Node>(relevantActivitiesSpecifier) { relevantActivity ->
-        executionPath(
-            startNode = relevantActivity,
-            direction = Backward(GraphToFollow.EOG),
-            type = May,
-            scope = Interprocedural(maxSteps = 100),
-            predicate = { node -> node is LogWrite && node.isLevelEnabled },
-        )
-    }
+    return translationResult
+        .allExtended<Node>(relevantActivitiesSpecifier) { relevantActivity ->
+            executionPath(
+                    startNode = relevantActivity,
+                    direction = Backward(GraphToFollow.EOG),
+                    type = May,
+                    scope = Interprocedural(maxSteps = 100),
+                    predicate = { node -> node is LogWrite && node.isLevelEnabled },
+                )
+                .apply {
+                    stringRepresentation =
+                        if (value) "Logging statement was found before relevant activity"
+                        else "No logging statement was found before relevant activity"
+                }
+        }
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "Relevant activities have logging statements executed before them, if the log level is configured accordingly."
+                else
+                    "Some relevant activities do not have logging statements executed before them, even if the log level is configured accordingly."
+        }
 }
 
 /**
@@ -163,19 +183,34 @@ context(translationResult: TranslationResult)
 fun relevantActivityHasLoggingWithMeaningfulMessage(
     relevantActivitiesSpecifier: ((Node) -> Boolean)
 ): QueryTree<Boolean> {
-    return translationResult.allExtended<Node>(relevantActivitiesSpecifier) { relevantActivity ->
-        executionPath(
-            startNode = relevantActivity,
-            direction = Backward(GraphToFollow.EOG),
-            type = Must,
-            scope = Interprocedural(),
-            predicate = { node ->
-                node is LogWrite &&
-                    node.isLevelEnabled &&
-                    messageMatchesActivity(node.logArguments, relevantActivity)
-            },
-        )
-    }
+    return translationResult
+        .allExtended<Node>(relevantActivitiesSpecifier) { relevantActivity ->
+            executionPath(
+                    startNode = relevantActivity,
+                    direction = Backward(GraphToFollow.EOG),
+                    type = Must,
+                    scope = Interprocedural(),
+                    predicate = { node ->
+                        node is LogWrite &&
+                            node.isLevelEnabled &&
+                            messageMatchesActivity(node.logArguments, relevantActivity)
+                    },
+                )
+                .apply {
+                    stringRepresentation =
+                        if (value)
+                            "Logging statement with a meaningful message was found before relevant activity"
+                        else
+                            "No logging statement with a meaningful message was found before relevant activity"
+                }
+        }
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "Relevant activities have logging statements executed before them, if the log level is configured accordingly. The logging statements have meaningful messages."
+                else
+                    "Some relevant activities do not have logging statements with a meaningful message executed before them, even if the log level is configured accordingly."
+        }
 }
 
 /**
@@ -203,66 +238,113 @@ fun messageMatchesActivity(arguments: List<Node?>, relevantActivity: Node): Bool
 /** This query checks that each [LogWrite] contains a timestamp. */
 context(translationResult: TranslationResult)
 fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
-    return translationResult.allExtended<LogWrite> { logWrite ->
-        // TODO: Add a list of fields to the Log concept which tells us what information is included
-        //   by each log entry. Typically, this is something like a timestamp, a logger name
-        val timestampField =
-            setOf<Node>() // logWrite.concept.logFields.filter{ it is LogTimestamp }
-        val argumentHasTimestamp =
-            logWrite.logArguments.filterNotNull().map {
-                dataFlow(
-                    startNode = it,
-                    direction = Backward(GraphToFollow.DFG),
-                    type = Must,
-                    scope = Interprocedural(),
-                    predicate = { node -> node is GetCurrentTimeOperation },
-                )
+    return translationResult
+        .allExtended<LogWrite> { logWrite ->
+            // TODO: Add a list of fields to the Log concept which tells us what information is
+            // included
+            //   by each log entry. Typically, this is something like a timestamp, a logger name
+            val timestampField =
+                setOf<Node>() // logWrite.concept.logFields.filter{ it is LogTimestamp }
+            val timestampQt =
+                QueryTree(
+                        value = timestampField.isNotEmpty(),
+                        children =
+                            listOf(
+                                QueryTree(timestampField, operator = GenericQueryOperators.EVALUATE)
+                            ),
+                        operator = GenericQueryOperators.EVALUATE,
+                    )
+                    .apply {
+                        stringRepresentation =
+                            if (value) "All log entries have a field logging the current time"
+                            else "Not all log entries have a field logging the current time"
+                    }
+
+            val argumentHasTimestamp =
+                logWrite.logArguments.filterNotNull().map {
+                    dataFlow(
+                            startNode = it,
+                            direction = Backward(GraphToFollow.DFG),
+                            type = Must,
+                            scope = Interprocedural(),
+                            predicate = { node -> node is GetCurrentTimeOperation },
+                        )
+                        .apply {
+                            stringRepresentation =
+                                if (value) "Argument flows from a timestamp source"
+                                else "Argument does not flow from a timestamp source"
+                        }
+                }
+            val timeArgumentQt =
+                QueryTree(
+                        value = argumentHasTimestamp.any { it.value },
+                        children = argumentHasTimestamp,
+                        operator = GenericQueryOperators.EVALUATE,
+                    )
+                    .apply {
+                        stringRepresentation =
+                            if (value) "Log entry has an argument which provides a timestamp"
+                            else "Log entry does not have any argument which provides a timestamp"
+                    }
+
+            (timestampQt or timeArgumentQt).apply {
+                stringRepresentation =
+                    if (value) "Log entry has a timestamp"
+                    else "Log entry does not have a timestamp"
             }
-        QueryTree(
-            value = timestampField.isNotEmpty(),
-            children = listOf(QueryTree(timestampField, operator = GenericQueryOperators.EVALUATE)),
-            operator = GenericQueryOperators.EVALUATE,
-        ) or
-            QueryTree(
-                value = argumentHasTimestamp.any { it.value },
-                children = argumentHasTimestamp,
-                operator = GenericQueryOperators.EVALUATE,
-            )
-    }
+        }
+        .apply {
+            stringRepresentation =
+                if (value) "All log entries have a timestamp"
+                else "Some log entries do not have a timestamp"
+        }
 }
 
 /**
- * This query checks that each [LogWrite] an argument which represents the initiator of the action.
- * We are currently supporting [Identity] as initiator.
+ * This query checks that each [LogWrite] has an argument which represents the initiator of the
+ * action. We are currently supporting [Identity] as initiator.
  */
 @AssessesMetrics("IdentityRecentActivity")
 @RepresentsEvidences("E99", "E96")
 context(translationResult: TranslationResult)
 fun logEntriesContainInitiator(): QueryTree<Boolean> {
-    return translationResult.allExtended<LogWrite> { logWrite ->
-        val argumentContainsInitiator =
-            logWrite.logArguments.filterNotNull().map {
-                dataFlow(
-                    startNode = it,
-                    direction = Backward(GraphToFollow.DFG),
-                    type = Must,
-                    scope = Interprocedural(),
-                    predicate = { node -> node is Identity },
-                )
-            }
-        QueryTree(
-                value = argumentContainsInitiator.any { it.value },
-                children = argumentContainsInitiator,
-                operator = GenericQueryOperators.EVALUATE,
-            )
-            .assume(
-                AssumptionType.DataFlowAssumption,
-                """
+    return translationResult
+        .allExtended<LogWrite> { logWrite ->
+            logWrite.logArguments
+                .filterNotNull()
+                .map {
+                    dataFlow(
+                            startNode = it,
+                            direction = Backward(GraphToFollow.DFG),
+                            type = Must,
+                            scope = Interprocedural(),
+                            predicate = { node -> node is Identity },
+                        )
+                        .apply {
+                            stringRepresentation =
+                                if (value) "The log entry contains the initiator of the action"
+                                else "The log entry does not contain the initiator of the action"
+                        }
+                }
+                .mergeWithAny(node = logWrite)
+                .assume(
+                    AssumptionType.DataFlowAssumption,
+                    """
                     We assume that the initiator is always logged via the same argument, i.e., the logging routine does not hold the initiator in different arguments on different paths reaching it.
                     
                     To validate this assumption, we need to check if different paths can contain the initiator and if it is enforced that at least one log argument always holds the initiator of the operation.
                     Note that this is only necessary if the query fails."""
-                    .trimIndent(),
-            )
-    }
+                        .trimIndent(),
+                )
+                .apply {
+                    stringRepresentation =
+                        if (value) "The log entry contains the initiator of the action"
+                        else "The log entry does not contain the initiator of the action"
+                }
+        }
+        .apply {
+            stringRepresentation =
+                if (value) "All log entries contain the initiator of the action"
+                else "Some log entries do not contain the initiator of the action"
+        }
 }
