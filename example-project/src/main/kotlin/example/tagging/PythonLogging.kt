@@ -43,7 +43,7 @@ fun TaggingContext.tagLogging() {
                 node.newLogging(
                     underlyingNode = node,
                     name = loggerName,
-                    logLevelThreshold = LogLevel.DEBUG,
+                    logLevelThreshold = LogLevel.WARN,
                     enabled = true,
                     connect = true,
                 )
@@ -76,6 +76,26 @@ fun TaggingContext.tagLogging() {
     each<CallExpression>(predicate = { it.name.localName == "error" }).with {
         node.findLogger()?.let { logging ->
             node.newLogWrite(node, logging, LogLevel.ERROR, node.arguments, connect = true)
+        }
+    }
+
+    // Tag logger.setLevel(X) calls
+    each<CallExpression>(predicate = { it.name.localName == "setLevel" }).with {
+        node.findLogger()?.let { logging ->
+            logging.logLevelThreshold =
+                when (node.arguments.firstOrNull()?.code) {
+                    "logging.NOTSET" ->
+                        LogLevel
+                            .UNKNOWN // TODO: We should look for another logger. If none is found,
+                    // all events are logged.
+                    "logging.DEBUG" -> LogLevel.DEBUG
+                    "logging.INFO" -> LogLevel.INFO
+                    "logging.WARNING" -> LogLevel.WARN
+                    "logging.ERROR" -> LogLevel.ERROR
+                    "logging.CRITICAL" -> LogLevel.CRITICAL
+                    else -> LogLevel.DEBUG
+                }
+            logging
         }
     }
 }
