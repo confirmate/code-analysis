@@ -138,7 +138,6 @@ private fun createDatabaseQuery(
             databaseService = null,
             storage = storage,
             linkedConcept = storage,
-            underlyingNode = node,
         )
         .apply {
             this.codeAndLocationFrom(node)
