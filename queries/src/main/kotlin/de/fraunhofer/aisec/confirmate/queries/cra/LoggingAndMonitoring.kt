@@ -153,7 +153,7 @@ fun relevantActivityHasLogging(
             executionPath(
                     startNode = relevantActivity,
                     direction = Backward(GraphToFollow.EOG),
-                    type = May,
+                    type = Must,
                     scope = Interprocedural(maxSteps = 100),
                     predicate = { node -> node is LogWrite && node.isLevelEnabled },
                 )
