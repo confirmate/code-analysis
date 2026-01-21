@@ -15,6 +15,7 @@
  *
  */
 import example.tagging.*
+import example.tagging.custom.*
 
 project {
     tagging {
@@ -24,6 +25,9 @@ project {
             tagPythonEncryption()
             tagIdentity()
             tagPythonDatabase()
+
+            // TOE-specific tagging
+            tagCriticalFunctionality()
         }
     }
 }
