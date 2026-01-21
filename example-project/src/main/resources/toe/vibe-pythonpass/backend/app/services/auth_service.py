@@ -5,6 +5,7 @@ import logging
 from flask import current_app
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 def create_user(username, master_password):
     logger.info(f"Create user: {username}")
