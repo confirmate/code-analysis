@@ -72,29 +72,39 @@ fun loggingOptOut(inputConfiguringOptOut: ((Node) -> Boolean)): QueryTree<Boolea
     // Idea: There exists a user input which flows into a CDG parent (possibly transitive) for each
     // logging statement. Probably, the usage of this opt-out input should be logged regardless of
     // its value.
-    return translationResult.allExtended<LogWrite> { logWrite ->
-        // We have to make use of the underlying node here, as the LogWrite itself is not connected
-        // via the CDG
-        val surroundingCDGNodeIsOptOut =
-            logWrite.underlyingNode?.prevCDGEdges?.map { it.isOptOutCheck(inputConfiguringOptOut) }
-                ?: emptyList()
-        QueryTree(
-                value = surroundingCDGNodeIsOptOut.any { it.value },
-                children = surroundingCDGNodeIsOptOut,
-                stringRepresentation = "Opt-out check for log write",
-                node = logWrite,
-                operator = GenericQueryOperators.EVALUATE,
-            )
-            .assume(
-                AssumptionType.ControlFlowAssumption,
-                """
+    return translationResult
+        .allExtended<LogWrite> { logWrite ->
+            // We have to make use of the underlying node here, as the LogWrite itself is not
+            // connected
+            // via the CDG
+            val surroundingCDGNodeIsOptOut =
+                logWrite.underlyingNode?.prevCDGEdges?.map {
+                    it.isOptOutCheck(inputConfiguringOptOut)
+                } ?: emptyList()
+            QueryTree(
+                    value = surroundingCDGNodeIsOptOut.any { it.value },
+                    children = surroundingCDGNodeIsOptOut,
+                    stringRepresentation = "Opt-out check for log write",
+                    node = logWrite,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+                .assume(
+                    AssumptionType.ControlFlowAssumption,
+                    """
                 We assume that the opt-out check for logging occurs in the closest surrounding branching node.
                 
                 To validate this assumption, we need if there is a check further away which disables the logging or if the logging is disabled in anther way, e.g. by configuring the log level.
                 Note that this is only necessary if the query fails."""
-                    .trimIndent(),
-            )
-    }
+                        .trimIndent(),
+                )
+        }
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "All logging statements are controlled by an opt-out mechanism based on user input."
+                else
+                    "Some logging statements are not controlled by an opt-out mechanism based on user input."
+        }
 }
 
 fun ControlDependence.isOptOutCheck(
