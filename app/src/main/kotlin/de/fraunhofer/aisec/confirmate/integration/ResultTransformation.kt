@@ -20,6 +20,7 @@ package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.confirmate.codyzePort
+import de.fraunhofer.aisec.confirmate.passes.ontologyObjects
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.scopes.NamespaceScope
@@ -123,6 +124,18 @@ fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
                     }
 
             evidences += modules
+        }
+
+        // Add library resources from ontologyObjects (e.g., from RequirementsPass)
+        val libraryResources =
+            this@toConfirmateResult.translationResult.ontologyObjects.filterIsInstance<Library>()
+        libraryResources.forEach { library ->
+            log.info("Creating evidence for library ${library.name}")
+            val libraryEvidence =
+                with(this@toConfirmateResult.translationResult) {
+                    Resource(library = library).toEvidence()
+                }
+            evidences += libraryEvidence
         }
     }
 
