@@ -35,4 +35,14 @@ project {
             }
         }
     }
+
+    suppressions {
+        /** Suppress the warning about missing opt-out checks on logging calls. */
+        queryTree(
+            { qt: QueryTree<Boolean> ->
+                qt.stringRepresentation ==
+                    "Some logging statements are not controlled by an opt-out mechanism based on user input."
+            } to true
+        )
+    }
 }
