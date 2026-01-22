@@ -22,6 +22,7 @@ import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RNG
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RngGet
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
+import de.fraunhofer.aisec.cpg.graph.edges.flows.insertNodeAfterwardInDFGPath
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
@@ -79,7 +80,8 @@ fun TaggingContext.tagEncryptionOperation() {
                 .apply {
                     this.codeAndLocationFrom(node)
                     this.name = Name(node.name.localName)
-                    this.nextDFG += node
+                    node.insertNodeAfterwardInDFGPath(this)
+                    // this.nextDFG += node
                 }
         )
     }
