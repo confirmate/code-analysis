@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def get_passwords(user_id):
-    logger.info(f"Get passwords for user_id: {user_id}")
+    logger.info("Get passwords for user_id: %s", user_id)
     passwords = Password.query.filter_by(user_id=user_id).all()
     user = User.query.get(user_id)
     return [{
@@ -17,7 +17,7 @@ def get_passwords(user_id):
     } for p in passwords]
 
 def add_password(user_id, data):
-    logger.info(f"Adding new password entry for user_id: {user_id}")
+    logger.info("Adding new password entry for user_id: %s",user_id)
     user = User.query.get(user_id)
     encrypted_pwd = encrypt_password(data['password'], user.master_password_hash)
     new_password = Password()
@@ -36,7 +36,7 @@ def add_password(user_id, data):
     }
 
 def update_password(user_id, password_id, data):
-    logger.info(f"Updating password entry {password_id} for user_id: {user_id}")
+    logger.info("Updating password entry %s for user_id: %s", password_id, user_id)
     password = Password.query.filter_by(id=password_id, user_id=user_id).first()
     user = User.query.get(user_id)
     if password and user:

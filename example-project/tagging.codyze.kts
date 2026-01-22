@@ -25,6 +25,7 @@ project {
             tagPythonEncryption()
             tagIdentity()
             tagPythonDatabase()
+            tagFlaskEndpoints()
 
             // TOE-specific tagging
             tagCriticalFunctionality()

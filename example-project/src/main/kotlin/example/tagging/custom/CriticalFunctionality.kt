@@ -23,7 +23,10 @@ import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
+import de.fraunhofer.aisec.cpg.passes.concepts.getOverlaysByPrevDFG
+import de.fraunhofer.aisec.cpg.passes.concepts.propagate
 import de.fraunhofer.aisec.cpg.passes.concepts.with
+import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
 /** Tagging for Python logging */
 fun TaggingContext.tagCriticalFunctionality() {
@@ -38,4 +41,17 @@ fun TaggingContext.tagCriticalFunctionality() {
                 } != null
         }
         .with { Identity() }
+
+    each<FunctionDeclaration> { functionDeclaration ->
+            // functionDeclaration.overlays.any { overlay -> overlay is HttpEndpoint } &&
+            functionDeclaration.annotations.any { annotation ->
+                annotation.name.localName == "token_required"
+            } && functionDeclaration.parameters.isNotEmpty()
+        }
+        .withMultiple {
+            if (node.getOverlaysByPrevDFG<HttpEndpoint>(this.state).isNotEmpty()) {
+                propagate { node.parameters[0] }.with { Identity() }
+            }
+            listOf()
+        }
 }

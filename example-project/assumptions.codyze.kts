@@ -26,6 +26,13 @@ project {
                         "We assume that the start of inference is a record, namespace or translation unit."
                     )
             }
+
+            accept {
+                it.assumptionType == AssumptionType.DataFlowAssumption &&
+                    it.message.startsWith(
+                        "We assume that the initiator is always logged via the same argument, i.e., the logging routine does not hold the initiator in different arguments on different paths reaching it."
+                    )
+            }
         }
     }
 }

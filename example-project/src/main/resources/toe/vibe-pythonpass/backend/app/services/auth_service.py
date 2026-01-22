@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 def create_user(username, master_password):
-    logger.info(f"Create user: {username}")
+    logger.info("Create user: %s", username)
     if User.query.filter_by(username=username).first():
         return None
     new_user = User(username=username)
@@ -18,7 +18,7 @@ def create_user(username, master_password):
     return new_user
 
 def authenticate_user(username, master_password):
-    logger.info(f"Authentication attempt for user: {username}")
+    logger.info("Authentication attempt for user: %s", username)
     user = User.query.filter_by(username=username).first()
     if user and user.check_master_password(master_password):
         token = jwt.encode({'user_id': user.id}, current_app.config['SECRET_KEY'], algorithm="HS256")
