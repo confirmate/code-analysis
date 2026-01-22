@@ -22,7 +22,7 @@ import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.confirmate.codyzePort
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration
+import de.fraunhofer.aisec.cpg.graph.scopes.NamespaceScope
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import io.clouditor.model.*
 import io.ktor.util.logging.Logger
@@ -112,14 +112,16 @@ fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
             }
             evidences += app
 
-            // Filter the root namespaces
             val modules =
                 component.namespaces
-                    .filter { it.namespaces.size == 1 }
+                    .mapNotNull { it.declaringScope }
+                    .filterIsInstance<NamespaceScope>()
+                    .toSet()
                     .map {
                         log.info("Creating evidence for namespace ${it.name}")
                         it.toResource(component.id.toString()).toEvidence()
                     }
+
             evidences += modules
         }
     }
@@ -174,8 +176,8 @@ private fun Component.toResource(): Resource {
     }
 }
 
-/** Converts a [NamespaceDeclaration] to a [Resource] object for Confirmate. */
-fun NamespaceDeclaration.toResource(componentId: String? = null): Resource {
+/** Converts a [NamespaceScope] to a [Resource] object for Confirmate. */
+fun NamespaceScope.toResource(componentId: String? = null): Resource {
     val parent = this.name.parent
     return Resource(
         sourceCodeFile =
@@ -183,11 +185,11 @@ fun NamespaceDeclaration.toResource(componentId: String? = null): Resource {
                 id = this.name.toString(),
                 name = this.name.localName,
                 parentId =
-                    /*if (parent != null) {
+                    if (parent != null) {
                         parent.toString()
-                    } else {*/
-                    componentId
-                /*}*/ ,
+                    } else {
+                        componentId
+                    },
                 functionalities = mutableListOf(),
             )
     )
