@@ -42,6 +42,7 @@ import de.fraunhofer.aisec.cpg.query.*
 @RepresentsEvidences("E70")
 context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
 fun dataEncryptedBeforePersisting(
+    isSensitiveData: (Node) -> Boolean = { true },
     isPersistentSink: (Node) -> Boolean = { it is WriteFile || it is DatabaseOperation },
     writtenData: (Node) -> List<Node>? = {
         (it as? WriteFile)?.what?.let { listOf(it) } ?: (it as? DatabaseQuery)?.parameters
@@ -62,7 +63,7 @@ fun dataEncryptedBeforePersisting(
                             "We did not find the data written to the persistent sink which might lead to false positives. This behavior is strange as the sink should typically have a way to persist data.\n\nTo verify this assumption, please check if the sink has indeed no way to persist data. To fix this issue, either specify the way how to identify data (by providing an improved `writtenData` argument or consider removing the sink from the `isPersistentSink` argument.",
                         )
             writtenData
-                .map { data -> data.alwaysCorrectlyEncrypted() }
+                .map { data -> data.alwaysCorrectlyEncrypted(isSensitiveData) }
                 .mergeWithAll()
                 .apply {
                     stringRepresentation =
@@ -80,7 +81,9 @@ fun dataEncryptedBeforePersisting(
 }
 
 context(cryptoCatalog: CryptoCatalog)
-fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
+fun Node.alwaysCorrectlyEncrypted(
+    isSensitiveData: (Node) -> Boolean = { true }
+): QueryTree<Boolean> {
     val relevantEncryptOperations = mutableListOf<Encrypt>()
     val writtenDataIsEncrypted =
         dataFlow(
@@ -91,6 +94,9 @@ fun Node.alwaysCorrectlyEncrypted(): QueryTree<Boolean> {
                 predicate = { enc ->
                     if (enc is Encrypt) {
                         relevantEncryptOperations.add(enc)
+                        true
+                    } else if (!isSensitiveData(enc)) {
+                        // If the data is not sensitive, we don't need to encrypt it
                         true
                     } else {
                         false
