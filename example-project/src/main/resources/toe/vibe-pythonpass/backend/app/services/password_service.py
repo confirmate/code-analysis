@@ -18,8 +18,7 @@ def get_passwords(user_id):
     } for p in passwords]
 
 def add_password(user_id, data):
-    timestamp = datetime.datetime.now()
-    logger.info("Adding new password entry for user_id: %s at %s", user_id, timestamp)
+    logger.info("Adding new password entry for user_id: %s", user_id)
     user = User.query.get(user_id)
     encrypted_pwd = encrypt_password(data['password'], user.master_password_hash)
     new_password = Password()
