@@ -22,6 +22,7 @@ import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.assumptions.AssumptionType
 import de.fraunhofer.aisec.cpg.assumptions.assume
 import de.fraunhofer.aisec.cpg.graph.*
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.CurrentTimeField
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.GetCurrentTimeOperation
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Identity
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.LogWrite
@@ -244,7 +245,7 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
             // included
             //   by each log entry. Typically, this is something like a timestamp, a logger name
             val timestampField =
-                setOf<Node>() // logWrite.concept.logFields.filter{ it is LogTimestamp }
+                logWrite.linkedConcept.logFields.filterIsInstance<CurrentTimeField>()
             val timestampQt =
                 QueryTree(
                         value = timestampField.isNotEmpty(),

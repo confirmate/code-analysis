@@ -46,6 +46,7 @@ fun TaggingContext.tagLogging() {
                     logLevelThreshold = LogLevel.WARN,
                     enabled = true,
                     connect = true,
+                    logFields = mutableListOf(CurrentTimeField, LoggerNameField, LogMessage),
                 )
             }
         node.newLogGet(underlyingNode = node, concept = logging, connect = true)
