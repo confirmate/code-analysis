@@ -26,6 +26,7 @@ import java.io.File
 import java.nio.file.Path
 import kotlin.io.path.exists
 import kotlin.io.path.readLines
+import kotlin.uuid.ExperimentalUuidApi
 
 /** Pass that analyzes requirements.txt files and creates Library resources from them. */
 @DependsOn(SymbolResolver::class)
@@ -41,7 +42,11 @@ class RequirementsPass(ctx: TranslationContext) : TranslationResultPass(ctx) {
         }
     }
 
-    /** Finds the requirements.txt file by searching from component source locations. Returns the path and component ID. */
+    /**
+     * Finds the requirements.txt file by searching from component source locations. Returns the
+     * path and component ID.
+     */
+    @OptIn(ExperimentalUuidApi::class)
     private fun findRequirementsFile(t: TranslationResult): Pair<Path?, String?> {
         // Try to get a file path from the translation units in the components
         for (component in t.components) {
@@ -62,10 +67,6 @@ class RequirementsPass(ctx: TranslationContext) : TranslationResultPass(ctx) {
                             val requirementsFile = File(parent, "requirements.txt").toPath()
                             if (requirementsFile.exists()) {
                                 return Pair(requirementsFile, component.id.toString())
-                            }
-                            val backendRequirements = File(parent, "backend/requirements.txt").toPath()
-                            if (backendRequirements.exists()) {
-                                return Pair(backendRequirements, component.id.toString())
                             }
                             parent = parent.parentFile
                             depth++
@@ -109,7 +110,7 @@ class RequirementsPass(ctx: TranslationContext) : TranslationResultPass(ctx) {
         return libraries
     }
 
-    /** Parses a single requirement line and returns a Library object. */
+    /** Parses a single requirement line and returns a Library object with PURL format. */
     private fun parseRequirement(requirement: String, parentId: String?): Library? {
         // Split by common version operators
         val operators = listOf("==", ">=", "<=", "~=", ">", "<")
@@ -117,20 +118,24 @@ class RequirementsPass(ctx: TranslationContext) : TranslationResultPass(ctx) {
         for (operator in operators) {
             if (requirement.contains(operator)) {
                 val parts = requirement.split(operator, limit = 2)
-                val packageName = parts[0].trim()
+                val packageName = parts[0].trim().lowercase()
                 val version = parts.getOrNull(1)?.trim()
 
-                return Library(
-                    id = packageName,
-                    name = if (version != null) "$packageName$operator$version" else packageName,
-                    parentId = parentId,
-                )
+                // Use PURL format: pkg:pypi/package-name@version
+                val purl =
+                    if (version != null) {
+                        "pkg:pypi/$packageName@$version"
+                    } else {
+                        "pkg:pypi/$packageName"
+                    }
+
+                return Library(id = packageName, name = purl, parentId = parentId)
             }
         }
 
         // No version specified
-        val packageName = requirement.trim()
-        return Library(id = packageName, name = packageName, parentId = parentId)
+        val packageName = requirement.trim().lowercase()
+        return Library(id = packageName, name = "pkg:pypi/$packageName", parentId = parentId)
     }
 
     override fun cleanup() {

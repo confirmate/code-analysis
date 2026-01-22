@@ -22,6 +22,7 @@ import de.fraunhofer.aisec.codyze.console.ConsoleService
 import de.fraunhofer.aisec.codyze.console.startConsole
 import de.fraunhofer.aisec.confirmate.integration.ClouditorClient
 import de.fraunhofer.aisec.confirmate.passes.RequirementsPass
+import de.fraunhofer.aisec.confirmate.passes.VulnerabilityEnrichmentPass
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.concepts.TagOverlaysPass
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
@@ -64,8 +65,12 @@ fun TranslationConfiguration.Builder.taggingProfiles(profiles: TaggingContext.()
     configurePass<TagOverlaysPass>(TagOverlaysPass.Configuration(tag { apply(profiles) }))
 }
 
-/** Registers the RequirementsPass to analyze requirements.txt files. */
+/**
+ * Registers the RequirementsPass to analyze requirements.txt files and VulnerabilityEnrichmentPass
+ * to check for vulnerabilities.
+ */
 fun TranslationConfiguration.Builder.withRequirementsAnalysis(): TranslationConfiguration.Builder {
     registerPass<RequirementsPass>()
+    registerPass<VulnerabilityEnrichmentPass>()
     return this
 }
