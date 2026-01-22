@@ -32,6 +32,7 @@ import kotlin.uuid.ExperimentalUuidApi
 include {
     Tagging from "tagging.codyze.kts"
     AssumptionDecisions from "assumptions.codyze.kts"
+    Suppressions from "suppressions.codyze.kts"
 }
 
 project {
@@ -41,8 +42,7 @@ project {
         configuration {
             registerPass<PythonFileConceptPass>()
             // Using pythonLogging tagging logic for now, since PythoNloggingConceptPass does not
-            // set
-            // all required properties
+            // set all required properties
             // registerPass<PythonLoggingConceptPass>()
         }
     }
@@ -104,10 +104,14 @@ project {
 
                 fulfilledBy {
                     with(DefaultConfig()) {
-                        secureConfigAlwaysUsed().withMetricId("SecureConfigurationEnforced") and
-                            noNonConfigConstantsToSecureOperation()
-                                .withMetricId("SecureConfigurationEnforced") and
-                            secureValuesConfigured().withMetricId("SecureConfigurationEnforced")
+                        listOf(
+                                secureConfigAlwaysUsed()
+                                    .withMetricId("SecureConfigurationEnforced"),
+                                noNonConfigConstantsToSecureOperation()
+                                    .withMetricId("SecureConfigurationEnforced"),
+                                secureValuesConfigured().withMetricId("SecureConfigurationEnforced"),
+                            )
+                            .mergeWithAll()
                     }
                 }
             }
@@ -118,15 +122,19 @@ project {
                     "Products with digital elements shall ensure that vulnerabilities can be addressed through security updates, including, where applicable, through automatic security updates that are installed within an appropriate timeframe enabled as a default setting, with a clear and easy-to-use opt-out mechanism, through the notification of available updates to users, and the option to temporarily postpone them;"
 
                 fulfilledBy {
-                    // We want to check at least once per 720 hours. Says the security metrics repo:
-                    // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
-                    updateIntervalSmallEnough(720.hours)
-                        .withMetricId("AutomaticUpdatesInterval") and
-                        updatesEnabled().withMetricId("AutomaticUpdatesEnabled") and
-                        updateCanBePostponed(postponeUpdate)
-                            .withMetricId("PostponeAlertOptionEnabled") and
-                        notificationOfUpdates(notificationChannel)
-                            .withMetricId("PostponeAlertOptionEnabled")
+                    listOf(
+                            // We want to check at least once per 720 hours. Says the security
+                            // metrics repo:
+                            // https://github.com/Cybersecurity-Certification-Hub/security-metrics/blob/main/metrics/EndpointSecurity/AutomaticUpdatesInterval/AutomaticUpdatesInterval.yml
+                            updateIntervalSmallEnough(720.hours)
+                                .withMetricId("AutomaticUpdatesInterval"),
+                            updatesEnabled().withMetricId("AutomaticUpdatesEnabled"),
+                            updateCanBePostponed(postponeUpdate)
+                                .withMetricId("PostponeAlertOptionEnabled"),
+                            notificationOfUpdates(notificationChannel)
+                                .withMetricId("PostponeAlertOptionEnabled"),
+                        )
+                        .mergeWithAll()
                 }
             }
 
@@ -136,32 +144,39 @@ project {
                     "Products with digital elements shall ensure protection from unauthorised access by appropriate control mechanisms, including but not limited to authentication, identity or access management systems, and report on possible unauthorised access;"
 
                 fulfilledBy {
-                    authorizationAtEndpoint(::authorizationSelector)
-                        .withMetricId("AnomalyDetectionEnabled")
-                    identityPasswordPolicyEnabled()
-                        .withMetricId("IdentityPasswordPolicyEnabled") and
-                        authorizationBeforeCriticalFunctionality(
-                                ::authorizationSelector,
-                                ::criticalSelector,
-                            )
-                            .withMetricId("AnomalyDetectionEnabled") and
-                        authenticationAtEndpoint(::authenticationSelector)
-                            .withMetricId("AnomalyDetectionEnabled") and
-                        authenticationBeforeCriticalFunctionality(
-                                ::authenticationSelector,
-                                ::criticalSelector,
-                            )
-                            .withMetricId("AnomalyDetectionEnabled") and
-                        loggingOnSecurityErrors(::authenticationSelector, ::authorizationSelector)
-                            .withMetricId("AnomalyDetectionOutput") and
-                        adminAuthenticationWithMFA(::authenticationSelector)
-                            .withMetricId("AdminMFAEnabled") and
-                        identityPasswordPolicyEnabled()
-                            .withMetricId("IdentityPasswordPolicyEnabled") and
-                        anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled") and
-                        with(BSI_TR02102()) {
-                            dataEncryptedBeforePersisting().withMetricId("AtRestEncryptionEnabled")
-                        }
+                    listOf(
+                            authorizationAtEndpoint(::authorizationSelector)
+                                .withMetricId("AnomalyDetectionEnabled"),
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled"),
+                            authorizationBeforeCriticalFunctionality(
+                                    ::authorizationSelector,
+                                    ::criticalSelector,
+                                )
+                                .withMetricId("AnomalyDetectionEnabled"),
+                            authenticationAtEndpoint(::authenticationSelector)
+                                .withMetricId("AnomalyDetectionEnabled"),
+                            authenticationBeforeCriticalFunctionality(
+                                    ::authenticationSelector,
+                                    ::criticalSelector,
+                                )
+                                .withMetricId("AnomalyDetectionEnabled"),
+                            loggingOnSecurityErrors(
+                                    ::authenticationSelector,
+                                    ::authorizationSelector,
+                                )
+                                .withMetricId("AnomalyDetectionOutput"),
+                            adminAuthenticationWithMFA(::authenticationSelector)
+                                .withMetricId("AdminMFAEnabled"),
+                            identityPasswordPolicyEnabled()
+                                .withMetricId("IdentityPasswordPolicyEnabled"),
+                            anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled"),
+                            with(BSI_TR02102()) {
+                                dataEncryptedBeforePersisting()
+                                    .withMetricId("AtRestEncryptionEnabled")
+                            },
+                        )
+                        .mergeWithAll()
                 }
             }
 
@@ -172,17 +187,30 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        dataEncryptedBeforePersisting(
-                                isPersistentSink = {
-                                    it is WriteFile ||
-                                        (it is DatabaseOperation &&
-                                            it.underlyingNode?.name?.localName != "commit")
-                                }
+                        listOf(
+                                dataEncryptedBeforePersisting(
+                                        isSensitiveData = {
+                                            it.code !in
+                                                listOf(
+                                                    "data['username']",
+                                                    "data['website']",
+                                                    "user.id",
+                                                    "Password()",
+                                                    "User(username=username)",
+                                                )
+                                        },
+                                        isPersistentSink = {
+                                            it is WriteFile ||
+                                                (it is DatabaseOperation &&
+                                                    it.underlyingNode?.name?.localName != "commit")
+                                        },
+                                    )
+                                    .withMetricId("AtRestEncryptionEnabled"),
+                                dataInTransitEncrypted().withMetricId("TransportEncryptionEnabled"),
+                                identityPasswordPolicyEnabled()
+                                    .withMetricId("IdentityPasswordPolicyEnabled"),
                             )
-                            .withMetricId("AtRestEncryptionEnabled") and
-                            dataInTransitEncrypted().withMetricId("InTransitEncryptionEnabled") and
-                            identityPasswordPolicyEnabled()
-                                .withMetricId("IdentityPasswordPolicyEnabled")
+                            .mergeWithAll()
                     }
                 }
             }
@@ -194,17 +222,20 @@ project {
 
                 fulfilledBy {
                     with(BSI_TR02102()) {
-                        secureProtocolsEnabled(
-                                {
-                                    true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
-                                },
-                                {
-                                    false /* We do not know this, so let's fail to enforce a manual check. */
-                                },
+                        listOf(
+                                secureProtocolsEnabled(
+                                        {
+                                            true /* Let's just say that all connections have to be secure. This should be fair nowadays. */
+                                        },
+                                        {
+                                            false /* We do not know this, so let's fail to enforce a manual check. */
+                                        },
+                                    )
+                                    .withMetricId("TransportEncryptionEnabled"),
+                                identityPasswordPolicyEnabled()
+                                    .withMetricId("IdentityPasswordPolicyEnabled"),
                             )
-                            .withMetricId("InTransitEncryptionEnabled") and
-                            identityPasswordPolicyEnabled()
-                                .withMetricId("IdentityPasswordPolicyEnabled")
+                            .mergeWithAll()
                     }
                 }
             }
@@ -215,23 +246,28 @@ project {
                     "Products with digital elements shall process only data, personal or other, that are adequate, relevant and limited to what is necessary in relation to the intended purpose of the product with digital elements (data minimisation);"
 
                 fulfilledBy {
-                    sensitiveDataHasSafeguards(
-                            isSensitiveData = personalDataSources,
-                            isStorageOperation = { n -> n is DatabaseOperation || n is WriteFile },
+                    listOf(
+                            sensitiveDataHasSafeguards(
+                                    isSensitiveData = personalDataSources,
+                                    isStorageOperation = { n ->
+                                        n is DatabaseOperation || n is WriteFile
+                                    },
+                                )
+                                .withMetricId("DataMinimisationTechniquesEnabled"),
+                            collectedDataIsProcessed(personalDataSources)
+                                .withMetricId("DataMinimisationTechniquesEnabled"),
+                            dbHasTTLConfigured().withMetricId("AutomatedDeletionOfDataEnabled"),
+                            dbStoredDataIsRead(
+                                    isWriteQuery = { query: DatabaseQuery ->
+                                        "insert" in (query.calls ?: listOf<String>())
+                                    },
+                                    isReadQuery = { query: DatabaseQuery ->
+                                        "select" in (query.calls ?: listOf<String>())
+                                    },
+                                )
+                                .withMetricId("DataMinimisationTechniquesEnabled"),
                         )
-                        .withMetricId("DataMinimisationTechniquesEnabled") and
-                        collectedDataIsProcessed(personalDataSources)
-                            .withMetricId("DataMinimisationTechniquesEnabled") and
-                        dbHasTTLConfigured().withMetricId("AutomatedDeletionOfDataEnabled") and
-                        dbStoredDataIsRead(
-                                isWriteQuery = { query: DatabaseQuery ->
-                                    "insert" in (query.calls ?: listOf<String>())
-                                },
-                                isReadQuery = { query: DatabaseQuery ->
-                                    "select" in (query.calls ?: listOf<String>())
-                                },
-                            )
-                            .withMetricId("DataMinimisationTechniquesEnabled")
+                        .mergeWithAll()
                 }
             }
 
@@ -241,9 +277,13 @@ project {
                     "Products with digital elements shall protect the availability of essential and basic functions, also after an incident, including through resilience and mitigation measures against denial-of-service attacks;"
 
                 fulfilledBy {
-                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting()).withMetricId(
-                        "DDOSMechanismActivated"
-                    )
+                    (endpointsHaveRateLimiting() and endpointsHaveSizeLimiting())
+                        .apply {
+                            stringRepresentation =
+                                if (value) "Basic DoS protection mechanisms are in place."
+                                else "Basic DoS protection mechanisms are not in place."
+                        }
+                        .withMetricId("DDOSMechanismActivated")
                 }
             }
 
@@ -287,8 +327,9 @@ project {
                             logEntriesHaveTimestamp(),
                             logEntriesContainInitiator().withMetricId("IdentityRecentActivity"),
                             loggingOptOut {
-                                false /* There's no opt-out mechanism we can identify. */
-                            },
+                                    false /* There's no opt-out mechanism we can identify. */
+                                }
+                                .withMetricId("LoggingOptOutMechanismAvailable"),
                             loggingEnabledByDefault(),
                             loggedDataAvailableToUser({ false }, { false })
                                 .withMetricId("SecurityDataAvailableToUser"),
