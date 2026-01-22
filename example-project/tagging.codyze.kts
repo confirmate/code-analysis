@@ -26,6 +26,7 @@ project {
             tagIdentity()
             tagPythonDatabase()
             tagFlaskEndpoints()
+            tagTime()
 
             // TOE-specific tagging
             tagCriticalFunctionality()

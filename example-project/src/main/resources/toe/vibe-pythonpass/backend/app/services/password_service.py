@@ -2,6 +2,7 @@ from backend.app.models import User, Password
 from backend.app import db
 from backend.app.utils.encryption import encrypt_password, decrypt_password
 import logging
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,8 @@ def get_passwords(user_id):
     } for p in passwords]
 
 def add_password(user_id, data):
-    logger.info("Adding new password entry for user_id: %s",user_id)
+    timestamp = datetime.datetime.now()
+    logger.info("Adding new password entry for user_id: %s at %s", user_id, timestamp)
     user = User.query.get(user_id)
     encrypted_pwd = encrypt_password(data['password'], user.master_password_hash)
     new_password = Password()
