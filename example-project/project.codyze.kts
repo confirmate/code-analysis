@@ -206,6 +206,8 @@ project {
                                         },
                                     )
                                     .withMetricId("AtRestEncryptionEnabled"),
+                                cryptoUsedForConfidentialityIsSOTA()
+                                    .withMetricId("StrongCryptographicHash"),
                                 dataInTransitEncrypted().withMetricId("TransportEncryptionEnabled"),
                                 identityPasswordPolicyEnabled()
                                     .withMetricId("IdentityPasswordPolicyEnabled"),

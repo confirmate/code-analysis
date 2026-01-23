@@ -27,7 +27,10 @@ import de.fraunhofer.aisec.cpg.graph.Backward
 import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Interprocedural
 import de.fraunhofer.aisec.cpg.graph.Node
+import de.fraunhofer.aisec.cpg.graph.OverlayNode
+import de.fraunhofer.aisec.cpg.graph.concepts.crypto.encryption.Decrypt
 import de.fraunhofer.aisec.cpg.graph.concepts.file.WriteFile
+import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.HashFunction
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.query.*
 
@@ -139,6 +142,51 @@ fun Node.alwaysCorrectlyEncrypted(
             else
                 "Data is not always encrypted using state-of-the-art cryptographic algorithms before being persisted."
     }
+}
+
+context(translationResult: TranslationResult, cryptoCatalog: CryptoCatalog)
+fun cryptoUsedForConfidentialityIsSOTA(): QueryTree<Boolean> {
+    return translationResult
+        .allExtended<OverlayNode>(
+            sel = { it is CryptographicHash || it is Encrypt || it is Decrypt }
+        ) {
+            if (it is Encrypt || it is Decrypt) {
+                val cipher = it.concept as? Cipher
+                if (cipher != null) {
+                    return@allExtended cipher.conformsToStateOfTheArt()
+                } else {
+                    return@allExtended QueryTree(
+                        value = false,
+                        stringRepresentation =
+                            "Missing Cipher concept related to a cryptographic operation.",
+                        node = it,
+                        operator = GenericQueryOperators.EVALUATE,
+                    )
+                }
+            } else if (it is CryptographicHash && it.concept is Confidentiality) {
+                it.hashFunction.conformsToStateOfTheArt()
+            } else {
+                return@allExtended QueryTree(
+                    value = true,
+                    stringRepresentation =
+                        "Cryptographic operation ${it.name} is not related to confidentiality.",
+                    node = it,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
+            }
+        }
+        .apply {
+            stringRepresentation =
+                if (value)
+                    "All cryptographic algorithms used for confidentiality conform to state of the art."
+                else
+                    "Some cryptographic algorithms used for confidentiality do not conform to state of the art."
+        }
+}
+
+context(cryptoCatalog: CryptoCatalog)
+fun HashFunction.conformsToStateOfTheArt(): QueryTree<Boolean> {
+    return cryptoCatalog.checkHashFunction()
 }
 
 context(cryptoCatalog: CryptoCatalog)

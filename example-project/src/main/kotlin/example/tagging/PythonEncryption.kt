@@ -19,6 +19,7 @@ package example.tagging
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
+import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.HashFunction
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RNG
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RngGet
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
@@ -87,7 +88,39 @@ fun TaggingContext.tagEncryptionOperation() {
     }
 }
 
+/** Tagging for Fernet hashlib calls */
+fun TaggingContext.tagHashlib() {
+    each<CallExpression>(predicate = { it.name.toString() == "hashlib.md5" }).withMultiple {
+        val hashFunction =
+            node.overlays.filterIsInstance<HashFunction>().singleOrNull()
+                ?: HashFunction(hashFunctionName = "MD5", outputSize = 128, node).apply {
+                    this.codeAndLocationFrom(node)
+                    this.name = Name(node.name.localName)
+                }
+        val confidentiality =
+            node.overlays.filterIsInstance<Confidentiality>().singleOrNull()
+                ?: Confidentiality(underlyingNode = node)
+
+        listOf(
+            hashFunction,
+            confidentiality,
+            CryptographicHash(
+                    algorithm = hashFunction.hashFunctionName,
+                    hashFunction = hashFunction,
+                    usesSalt = null,
+                    linkedConcept = confidentiality,
+                    underlyingNode = node,
+                )
+                .apply {
+                    this.codeAndLocationFrom(node)
+                    this.name = Name(node.name.localName)
+                },
+        )
+    }
+}
+
 fun TaggingContext.tagPythonEncryption() {
     tagEncryption()
     tagEncryptionOperation()
+    tagHashlib()
 }
