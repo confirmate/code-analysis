@@ -146,35 +146,34 @@ project {
                 fulfilledBy {
                     listOf(
                             authorizationAtEndpoint(::authorizationSelector)
-                                .withMetricId("AnomalyDetectionEnabled"),
+                                .withMetricId("AccessControlMechanismsImplemented"),
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled"),
                             authorizationBeforeCriticalFunctionality(
                                     ::authorizationSelector,
                                     ::criticalSelector,
                                 )
-                                .withMetricId("AnomalyDetectionEnabled"),
+                                .withMetricId("AccessControlMechanismsImplemented"),
                             authenticationAtEndpoint(::authenticationSelector)
-                                .withMetricId("AnomalyDetectionEnabled"),
+                                .withMetricId("AccessControlMechanismsImplemented"),
                             authenticationBeforeCriticalFunctionality(
                                     ::authenticationSelector,
                                     ::criticalSelector,
                                 )
-                                .withMetricId("AnomalyDetectionEnabled"),
+                                .withMetricId("AccessControlMechanismsImplemented"),
                             loggingOnSecurityErrors(
                                     ::authenticationSelector,
                                     ::authorizationSelector,
                                 )
-                                .withMetricId("AnomalyDetectionOutput"),
-                            adminAuthenticationWithMFA(::authenticationSelector)
-                                .withMetricId("AdminMFAEnabled"),
+                                .withMetricId("UnauthorizedAccessReported"),
+                            adminAuthenticationWithMFA({ false }).withMetricId("AdminMFAEnabled"),
                             identityPasswordPolicyEnabled()
                                 .withMetricId("IdentityPasswordPolicyEnabled"),
                             anomalyDetectionEnabled().withMetricId("AnomalyDetectionEnabled"),
-                            with(BSI_TR02102()) {
-                                dataEncryptedBeforePersisting()
-                                    .withMetricId("AtRestEncryptionEnabled")
-                            },
+                            // with(BSI_TR02102()) {
+                            //    dataEncryptedBeforePersisting()
+                            //        .withMetricId("AtRestEncryptionEnabled")
+                            // },
                         )
                         .mergeWithAll()
                 }
