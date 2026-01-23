@@ -18,6 +18,7 @@ package example.tagging.custom
 
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpEndpoint
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Identity
+import de.fraunhofer.aisec.cpg.graph.concepts.ontology.PasswordBasedAuthentication
 import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
@@ -49,7 +50,21 @@ fun TaggingContext.tagCriticalFunctionality() {
             } && functionDeclaration.parameters.isNotEmpty()
         }
         .withMultiple {
-            if (node.getOverlaysByPrevDFG<HttpEndpoint>(this.state).isNotEmpty()) {
+            val endpoints = node.getOverlaysByPrevDFG<HttpEndpoint>(this.state)
+            if (endpoints.isNotEmpty()) {
+                propagate { node }
+                    .with {
+                        val auth =
+                            PasswordBasedAuthentication(
+                                activated = true,
+                                contextIsChecked = null,
+                                rotationInterval = null,
+                            )
+                        for (endpoint in endpoints) {
+                            endpoint.authenticity = auth
+                        }
+                        auth
+                    }
                 propagate { node.parameters[0] }.with { Identity() }
             }
             listOf()
