@@ -97,6 +97,7 @@ fun loggingOptOut(inputConfiguringOptOut: ((Node) -> Boolean)): QueryTree<Boolea
                 Note that this is only necessary if the query fails."""
                         .trimIndent(),
                 )
+                .apply { checkForSuppression() }
         }
         .apply {
             stringRepresentation =
@@ -104,6 +105,7 @@ fun loggingOptOut(inputConfiguringOptOut: ((Node) -> Boolean)): QueryTree<Boolea
                     "All logging statements are controlled by an opt-out mechanism based on user input."
                 else
                     "Some logging statements are not controlled by an opt-out mechanism based on user input."
+            checkForSuppression()
         }
 }
 
