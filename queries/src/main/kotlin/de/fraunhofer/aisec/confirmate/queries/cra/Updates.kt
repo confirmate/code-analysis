@@ -48,82 +48,115 @@ fun updatesEnabled(): QueryTree<Boolean> {
 
 context(translationResult: TranslationResult)
 fun updateIntervalSmallEnough(maxUpdateInterval: Duration): QueryTree<Boolean> {
-    return translationResult.allExtended<AutomaticUpdates> {
-        it.interval?.let { interval ->
-            (interval.inWholeSeconds le maxUpdateInterval.inWholeSeconds).apply {
-                stringRepresentation =
-                    if (value)
-                        "The update interval is ${interval.inWholeSeconds} seconds which is ok."
-                    else
-                        "The update interval is ${interval.inWholeSeconds} seconds which is larger than the maximal accepted interval of ${maxUpdateInterval.inWholeSeconds} seconds."
+    return translationResult
+        .allExtended<AutomaticUpdates> {
+            it.interval?.let { interval ->
+                (interval.inWholeSeconds le maxUpdateInterval.inWholeSeconds).apply {
+                    stringRepresentation =
+                        if (value)
+                            "The update interval is ${interval.inWholeSeconds} seconds which is ok."
+                        else
+                            "The update interval is ${interval.inWholeSeconds} seconds which is larger than the maximal accepted interval of ${maxUpdateInterval.inWholeSeconds} seconds."
+                }
             }
+                ?: QueryTree(
+                    value = false,
+                    stringRepresentation = "Could not identify the update interval",
+                    node = it,
+                    operator = GenericQueryOperators.EVALUATE,
+                )
         }
-            ?: QueryTree(
-                value = false,
-                stringRepresentation = "Could not identify the update interval",
-                node = it,
-                operator = GenericQueryOperators.EVALUATE,
-            )
-    }
+        .apply {
+            if (children.isEmpty()) {
+                value = false
+                stringRepresentation = "No automatic update procedures were found."
+                return this
+            }
+            stringRepresentation =
+                if (value) "All update intervals are small enough."
+                else "At least one update interval is too large."
+        }
 }
 
 context(translationResult: TranslationResult)
 fun notificationOfUpdates(notificationChannel: (Node) -> Boolean): QueryTree<Boolean> {
     // There must be an execution path from the update to a notification of the user.
-    return translationResult.allExtended<AutomaticUpdates> {
-        executionPath(startNode = it, type = Must, predicate = notificationChannel)
-    }
+    return translationResult
+        .allExtended<AutomaticUpdates> {
+            executionPath(startNode = it, type = Must, predicate = notificationChannel)
+        }
+        .apply {
+            if (children.isEmpty()) {
+                value = false
+                stringRepresentation = "No automatic update procedures were found."
+                return this
+            }
+            stringRepresentation =
+                if (value) "The user is always notified about existing updates."
+                else "The user is not always notified about existing updates."
+        }
 }
 
 context(translationResult: TranslationResult)
 fun updateCanBePostponed(postponeInput: (Node) -> Boolean): QueryTree<Boolean> {
     // There installation of the update must depend (prev CDG) on the decision of the postpone input
     // (not postponed -> install).
-    return translationResult.allExtended<AutomaticUpdates> {
-        it.ops
-            .filterIsInstance<InstallUpdateOperation>()
-            .map { install ->
-                val executionDependsOnInput =
-                    install.followPrevCDGUntilHit(
-                        collectFailedPaths = true,
-                        findAllPossiblePaths = true,
-                        interproceduralAnalysis = true,
-                        predicate = postponeInput,
-                    )
+    return translationResult
+        .allExtended<AutomaticUpdates> {
+            it.ops
+                .filterIsInstance<InstallUpdateOperation>()
+                .map { install ->
+                    val executionDependsOnInput =
+                        install.followPrevCDGUntilHit(
+                            collectFailedPaths = true,
+                            findAllPossiblePaths = true,
+                            interproceduralAnalysis = true,
+                            predicate = postponeInput,
+                        )
 
-                QueryTree(
-                        value = executionDependsOnInput.failed.isEmpty(),
-                        node = install,
-                        children =
-                            executionDependsOnInput.fulfilled.map {
-                                QueryTree(
-                                        value = it,
-                                        node = install,
-                                        operator = GenericQueryOperators.EVALUATE,
-                                    )
-                                    .assume(
-                                        AssumptionType.ControlFlowAssumption,
-                                        "We assume that the correct branch between the input postponing the update and the actual update is taken.\n\nPlease validate this manually.",
-                                    )
-                            } +
-                                executionDependsOnInput.failed.map {
+                    QueryTree(
+                            value = executionDependsOnInput.failed.isEmpty(),
+                            node = install,
+                            children =
+                                executionDependsOnInput.fulfilled.map {
                                     QueryTree(
-                                        value = it.second,
-                                        node = install,
-                                        operator = GenericQueryOperators.EVALUATE,
-                                    )
-                                },
-                        operator = GenericQueryOperators.ALL,
-                    )
-                    .apply {
-                        stringRepresentation =
-                            if (value) {
-                                "The execution of the update always depends on a specified user input."
-                            } else {
-                                "The update can be executed and there's a path on which the user cannot postpone it."
-                            }
-                    }
+                                            value = it,
+                                            node = install,
+                                            operator = GenericQueryOperators.EVALUATE,
+                                        )
+                                        .assume(
+                                            AssumptionType.ControlFlowAssumption,
+                                            "We assume that the correct branch between the input postponing the update and the actual update is taken.\n\nPlease validate this manually.",
+                                        )
+                                } +
+                                    executionDependsOnInput.failed.map {
+                                        QueryTree(
+                                            value = it.second,
+                                            node = install,
+                                            operator = GenericQueryOperators.EVALUATE,
+                                        )
+                                    },
+                            operator = GenericQueryOperators.ALL,
+                        )
+                        .apply {
+                            stringRepresentation =
+                                if (value) {
+                                    "The execution of the update always depends on a specified user input."
+                                } else {
+                                    "The update can be executed and there's a path on which the user cannot postpone it."
+                                }
+                        }
+                }
+                .mergeWithAll()
+        }
+        .apply {
+            if (children.isEmpty()) {
+                value = false
+                stringRepresentation = "No automatic update procedures were found."
+                return this
             }
-            .mergeWithAll()
-    }
+            stringRepresentation =
+                if (value) "The user can postpone installing the update."
+                else "The user cannot always postpone installing the update."
+        }
 }
