@@ -107,19 +107,33 @@ fun secureConfigAlwaysUsed(
     // May analysis, because the configuration data does not have to flow into such an operation in
     // all cases, but logging
     // of security parameters is legitimate as well.
-    return translationResult.allExtended<OverlayNode>(
-        sel = { it ->
-            (it is Configuration || it is ConfigurationOperation || it is ConfigurationOption) &&
-                isSecurityConfiguration(it)
+    return translationResult
+        .allExtended<OverlayNode>(
+            sel = { it ->
+                (it is Configuration ||
+                    it is ConfigurationOperation ||
+                    it is ConfigurationOption) && isSecurityConfiguration(it)
+            }
+        ) { node ->
+            dataFlow(
+                startNode = node,
+                direction = Forward(GraphToFollow.DFG),
+                type = May,
+                predicate = { node -> isSecurityConfigurationSink(node) },
+            )
         }
-    ) { node ->
-        dataFlow(
-            startNode = node,
-            direction = Forward(GraphToFollow.DFG),
-            type = May,
-            predicate = { node -> isSecurityConfigurationSink(node) },
-        )
-    }
+        .apply {
+            if (children.isEmpty()) {
+                value = true
+                stringRepresentation = "No security relevant configuration options were found."
+                return this
+            }
+            stringRepresentation =
+                if (value)
+                    "All security relevant configuration options actually configure a security-critical functionality."
+                else
+                    "Some security relevant configuration options do not configure a security-critical functionality."
+        }
 }
 
 /**
@@ -131,35 +145,58 @@ fun noNonConfigConstantsToSecureOperation(
     isSecurityConfiguration: (Node) -> Boolean = ::securityConfigurationSelector,
     isSecurityConfigurationSink: (Node) -> Boolean = ::securityConfigurationSinkSelector,
 ): QueryTree<Boolean> {
-    return translationResult.allExtended<Node>(
-        sel = { it -> securityConfigurationSinkSelector(it) }
-    ) { node ->
-        dataFlow(
-            startNode = node,
-            direction = Backward(GraphToFollow.DFG),
-            earlyTermination = { node -> node is Literal<*> },
-            predicate = { node ->
-                (node is Configuration ||
-                    node is ConfigurationOperation ||
-                    node is ConfigurationOption) || node.prevDFGEdges.isEmpty()
-            },
-        )
-    }
+    return translationResult
+        .allExtended<Node>(sel = { it -> securityConfigurationSinkSelector(it) }) { node ->
+            dataFlow(
+                startNode = node,
+                direction = Backward(GraphToFollow.DFG),
+                earlyTermination = { node -> node is Literal<*> },
+                predicate = { node ->
+                    (node is Configuration ||
+                        node is ConfigurationOperation ||
+                        node is ConfigurationOption) || node.prevDFGEdges.isEmpty()
+                },
+            )
+        }
+        .apply {
+            if (children.isEmpty()) {
+                value = true
+                stringRepresentation = "No security relevant configuration options were found."
+                return this
+            }
+            stringRepresentation =
+                if (value)
+                    "All security relevant operations do not receive constant values, but configuration data."
+                else
+                    "Some security relevant operations receive constant values, but no configuration data."
+        }
 }
 
 context(translationResult: TranslationResult, secureConfiguration: SecureConfigurationsCatalog)
 fun secureValuesConfigured(): QueryTree<Boolean> {
-    return translationResult.allExtended<ConfigurationOption> { confOp ->
-        QueryTree<Boolean>(
-            value =
-                secureConfiguration.isSecureConfigValue(
-                    confOp.name.toString(),
-                    confOp.value.toString(),
-                ),
+    return translationResult
+        .allExtended<ConfigurationOption> { confOp ->
+            QueryTree<Boolean>(
+                value =
+                    secureConfiguration.isSecureConfigValue(
+                        confOp.name.toString(),
+                        confOp.value.toString(),
+                    ),
+                stringRepresentation =
+                    "The configuration of the value ${confOp.name} is either not security relevant or its value ${confOp.value} is considered to be secure by the default configuration.",
+                node = null,
+                operator = GenericQueryOperators.EVALUATE,
+            )
+        }
+        .apply {
+            if (children.isEmpty()) {
+                value = true
+                stringRepresentation = "No security relevant configuration options were found."
+                return this
+            }
             stringRepresentation =
-                "The configuration of the value ${confOp.name} is either not security relevant or its value ${confOp.value} is considered to be secure by the default configuration.",
-            node = null,
-            operator = GenericQueryOperators.EVALUATE,
-        )
-    }
+                if (value) "All security relevant configuration options are set to secure values."
+                else
+                    "At least one security relevant configuration option is set to an insecure value."
+        }
 }
