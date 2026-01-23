@@ -215,7 +215,7 @@ private fun Resource.toEvidence(): Evidence {
         // new evidence ID
         id = Uuid.random().toString(),
         timestamp = OffsetDateTime.now(),
-        targetOfEvaluationId = toe.id.toString(),
+        targetOfEvaluationId = "00000000-0000-0000-0000-000000000000", // toe.id.toString()
         toolId = codyzeToolId,
         resource = this,
     )
