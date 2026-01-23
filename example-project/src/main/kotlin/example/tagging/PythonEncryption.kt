@@ -92,12 +92,14 @@ fun TaggingContext.tagEncryptionOperation() {
 /** Tagging for Fernet hashlib calls */
 fun TaggingContext.tagHashlib() {
     each<CallExpression>(predicate = { it.name.toString() == "hashlib.md5" }).withMultiple {
-        val hashFunction = node.getOverlaysByPrevDFG<HashFunction>(this.state).singleOrNull()
+        val hashFunction =
+            node.getOverlaysByPrevDFG<HashFunction>(this.state).singleOrNull()
                 ?: HashFunction(hashFunctionName = "MD5", outputSize = 128, node).apply {
                     this.codeAndLocationFrom(node)
                     this.name = Name(node.name.localName)
                 }
-        val confidentiality = node.getOverlaysByPrevDFG<Confidentiality>(this.state).singleOrNull()
+        val confidentiality =
+            node.getOverlaysByPrevDFG<Confidentiality>(this.state).singleOrNull()
                 ?: Confidentiality(underlyingNode = node)
 
         listOf(
