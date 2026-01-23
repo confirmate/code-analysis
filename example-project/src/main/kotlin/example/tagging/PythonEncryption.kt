@@ -28,6 +28,7 @@ import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
+import de.fraunhofer.aisec.cpg.passes.concepts.getOverlaysByPrevDFG
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
@@ -91,14 +92,12 @@ fun TaggingContext.tagEncryptionOperation() {
 /** Tagging for Fernet hashlib calls */
 fun TaggingContext.tagHashlib() {
     each<CallExpression>(predicate = { it.name.toString() == "hashlib.md5" }).withMultiple {
-        val hashFunction =
-            node.overlays.filterIsInstance<HashFunction>().singleOrNull()
+        val hashFunction = node.getOverlaysByPrevDFG<HashFunction>(this.state).singleOrNull()
                 ?: HashFunction(hashFunctionName = "MD5", outputSize = 128, node).apply {
                     this.codeAndLocationFrom(node)
                     this.name = Name(node.name.localName)
                 }
-        val confidentiality =
-            node.overlays.filterIsInstance<Confidentiality>().singleOrNull()
+        val confidentiality = node.getOverlaysByPrevDFG<Confidentiality>(this.state).singleOrNull()
                 ?: Confidentiality(underlyingNode = node)
 
         listOf(
