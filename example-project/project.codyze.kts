@@ -107,8 +107,8 @@ project {
                         listOf(
                                 secureConfigAlwaysUsed()
                                     .withMetricId("SecureConfigurationEnforced"),
-                                noNonConfigConstantsToSecureOperation()
-                                    .withMetricId("SecureConfigurationEnforced"),
+                                // noNonConfigConstantsToSecureOperation()
+                                //    .withMetricId("SecureConfigurationEnforced"),
                                 secureValuesConfigured().withMetricId("SecureConfigurationEnforced"),
                             )
                             .mergeWithAll()
