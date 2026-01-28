@@ -33,16 +33,9 @@ project {
                         "We assume that the initiator is always logged via the same argument, i.e., the logging routine does not hold the initiator in different arguments on different paths reaching it."
                     )
             }
-        }
-    }
 
-    suppressions {
-        /** Suppress the warning about missing opt-out checks on logging calls. */
-        queryTree(
-            { qt: QueryTree<Boolean> ->
-                qt.stringRepresentation ==
-                    "Some logging statements are not controlled by an opt-out mechanism based on user input."
-            } to true
-        )
+            // Accept that logging is enabled by default
+            accept("00000000-0000-0000-0000-000078062ce0")
+        }
     }
 }
