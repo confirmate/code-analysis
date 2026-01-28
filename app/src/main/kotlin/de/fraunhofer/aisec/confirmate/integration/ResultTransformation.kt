@@ -121,7 +121,7 @@ private fun QueryTree<*>.toAssessmentResult(
             createAssessmentResult(
                 requirementId = requirementId,
                 resourceId = qt.node?.resourceId.toString(),
-                value = perciseValue,
+                value = perciseValue || value,
                 metricId = metricId,
                 currentTimestamp = currentTimestamp,
                 toeId = toeId,
