@@ -19,8 +19,8 @@ package example.tagging
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberAccess
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
@@ -32,10 +32,10 @@ import de.fraunhofer.aisec.cpg.passes.concepts.with
  */
 fun TaggingContext.tagDatabaseWrite() {
     // db.session.add()
-    each<MemberCallExpression>(
+    each<MemberCall>(
             predicate = {
                 it.name.localName == "add" &&
-                    (it.callee as? MemberExpression)?.base?.name?.localName == "session"
+                    (it.callee as? MemberAccess)?.base?.name?.localName == "session"
             }
         )
         .with {
@@ -44,10 +44,10 @@ fun TaggingContext.tagDatabaseWrite() {
         }
 
     // db.session.commit()
-    each<MemberCallExpression>(
+    each<MemberCall>(
             predicate = {
                 it.name.localName == "commit" &&
-                    (it.callee as? MemberExpression)?.base?.name?.localName == "session"
+                    (it.callee as? MemberAccess)?.base?.name?.localName == "session"
             }
         )
         .with {
@@ -65,27 +65,27 @@ fun TaggingContext.tagDatabaseWrite() {
  * - Model.query.first()
  */
 fun TaggingContext.tagDatabaseRead() {
-    each<MemberCallExpression>("*.query.filter_by").with {
+    each<MemberCall>("*.query.filter_by").with {
         val dbStorage = getOrCreateDatabaseStorage(node)
         createDatabaseQuery(node, dbStorage, isModify = false)
     }
 
-    each<MemberCallExpression>("*.query.filter").with {
+    each<MemberCall>("*.query.filter").with {
         val dbStorage = getOrCreateDatabaseStorage(node)
         createDatabaseQuery(node, dbStorage, isModify = false)
     }
 
-    each<MemberCallExpression>("*.query.get").with {
+    each<MemberCall>("*.query.get").with {
         val dbStorage = getOrCreateDatabaseStorage(node)
         createDatabaseQuery(node, dbStorage, isModify = false)
     }
 
-    each<MemberCallExpression>("*.query.all").with {
+    each<MemberCall>("*.query.all").with {
         val dbStorage = getOrCreateDatabaseStorage(node)
         createDatabaseQuery(node, dbStorage, isModify = false)
     }
 
-    each<MemberCallExpression>("*.query.first").with {
+    each<MemberCall>("*.query.first").with {
         val dbStorage = getOrCreateDatabaseStorage(node)
         createDatabaseQuery(node, dbStorage, isModify = false)
     }
@@ -95,7 +95,7 @@ fun TaggingContext.tagDatabaseRead() {
 private var databaseStorage: DatabaseStorage? = null
 
 /** Get or create a [DatabaseStorage] concept */
-private fun getOrCreateDatabaseStorage(node: MemberCallExpression): DatabaseStorage {
+private fun getOrCreateDatabaseStorage(node: MemberCall): DatabaseStorage {
     return databaseStorage
         ?: DatabaseStorage(
                 timeToLiveSeconds = null,
@@ -127,7 +127,7 @@ private fun getOrCreateDatabaseStorage(node: MemberCallExpression): DatabaseStor
 
 /** Helper to create a [DatabaseQuery] operation */
 private fun createDatabaseQuery(
-    node: MemberCallExpression,
+    node: MemberCall,
     storage: DatabaseStorage,
     isModify: Boolean,
 ): DatabaseQuery {

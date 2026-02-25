@@ -20,14 +20,14 @@ import de.fraunhofer.aisec.cpg.graph.*
 import de.fraunhofer.aisec.cpg.graph.Annotation
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpEndpoint
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpMethod
-import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.Function
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
 
 /**
- * Tags Flask routes based on route decorators on [FunctionDeclaration]s.
+ * Tags Flask routes based on route decorators on [Function]s.
  *
  * Supports both the `@app.route` decorator and the HTTP method shortcuts (`@app.get`, `@app.post`,
  * etc.).
@@ -54,7 +54,7 @@ import de.fraunhofer.aisec.cpg.passes.concepts.with
  * @see https://flask.palletsprojects.com/en/latest/api/#flask.Flask.get
  */
 fun TaggingContext.tagFlaskEndpoints() {
-    each<FunctionDeclaration>(
+    each<Function>(
             predicate = { func ->
                 // Check if the function has a decorator that looks like a Flask route
                 // Flask uses @app.route() or @app.get(), @app.post(), etc
@@ -121,7 +121,7 @@ fun TaggingContext.tagFlaskEndpoints() {
 }
 
 /**
- * Finds a call to `request.get_json()` or access to `request.json` within a [FunctionDeclaration].
+ * Finds a call to `request.get_json()` or access to `request.json` within a [Function].
  *
  * To access the JSON payload from incoming HTTP requests, Flask uses:
  * - `request.get_json()`
@@ -130,10 +130,10 @@ fun TaggingContext.tagFlaskEndpoints() {
  * @see https://flask.palletsprojects.com/en/latest/api/#flask.Request.get_json
  * @see https://flask.palletsprojects.com/en/latest/api/#flask.Request.json
  */
-private fun findRequestPayloadCall(func: FunctionDeclaration): Node? {
+private fun findRequestPayloadCall(func: Function): Node? {
     // Find request.get_json() call
     func
-        .allChildren<MemberCallExpression>()
+        .allChildren<MemberCall>()
         .firstOrNull { call ->
             call.name.localName == "get_json" &&
                 (call.base as? Reference)?.name?.localName == "request"
@@ -143,7 +143,7 @@ private fun findRequestPayloadCall(func: FunctionDeclaration): Node? {
         }
 
     // Find request.json property access
-    return func.allChildren<MemberExpression>().firstOrNull { member ->
+    return func.allChildren<MemberAccess>().firstOrNull { member ->
         member.name.localName == "json" && (member.base as? Reference)?.name?.localName == "request"
     }
 }
@@ -160,7 +160,7 @@ private fun extractHttpMethods(annotation: Annotation): List<HttpMethod> {
             ?: return listOf(HttpMethod.GET) // Default to GET if no methods specified
 
     return when (val value = methodsMember.value) {
-        is InitializerListExpression -> {
+        is InitializerList -> {
             value.initializers
                 .mapNotNull { initializer ->
                     val methodString = (initializer as? Literal<*>)?.value as? String

@@ -234,7 +234,7 @@ fun relevantActivityHasLoggingWithMeaningfulMessage(
 val LogWrite.isLevelEnabled: Boolean
     get() {
         return this.logLevel != null &&
-            this.linkedConcept.logLevelThreshold != null &&
+            (this.concept as? Logging)?.logLevelThreshold != null &&
             this.logLevel!! >= (this.concept as? Logging)?.logLevelThreshold!!
     }
 
@@ -257,10 +257,10 @@ fun logEntriesHaveTimestamp(): QueryTree<Boolean> {
             // included
             //   by each log entry. Typically, this is something like a timestamp, a logger name
             val timestampField =
-                logWrite.linkedConcept.logFields.filterIsInstance<CurrentTimeField>()
+                (logWrite.concept as? Logging)?.logFields?.filterIsInstance<CurrentTimeField>()
             val timestampQt =
                 QueryTree(
-                        value = timestampField.isNotEmpty(),
+                        value = timestampField?.isNotEmpty() ?: false,
                         children =
                             listOf(
                                 QueryTree(timestampField, operator = GenericQueryOperators.EVALUATE)

@@ -22,8 +22,8 @@ import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogging
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.followPrevFullDFGEdgesUntilHit
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberAccess
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
@@ -36,7 +36,7 @@ private val loggers = mutableMapOf<String, Logging>()
 
 /** Tagging for Python logging */
 fun TaggingContext.tagLogging() {
-    each<CallExpression>("logging.getLogger").with {
+    each<Call>("logging.getLogger").with {
         val loggerName = node.arguments.firstOrNull()?.evaluate() as? String ?: ""
         val logging =
             loggers.computeIfAbsent(loggerName) {
@@ -53,35 +53,35 @@ fun TaggingContext.tagLogging() {
     }
 
     // Tag logger.info() calls
-    each<CallExpression>(predicate = { it.name.localName == "info" }).with {
+    each<Call>(predicate = { it.name.localName == "info" }).with {
         node.findLogger()?.let { logging ->
             node.newLogWrite(node, logging, LogLevel.INFO, node.arguments, connect = true)
         }
     }
 
     // Tag logger.debug() calls
-    each<CallExpression>(predicate = { it.name.localName == "debug" }).with {
+    each<Call>(predicate = { it.name.localName == "debug" }).with {
         node.findLogger()?.let { logging ->
             node.newLogWrite(node, logging, LogLevel.DEBUG, node.arguments, connect = true)
         }
     }
 
     // Tag logger.warn() calls
-    each<CallExpression>(predicate = { it.name.localName == "warn" }).with {
+    each<Call>(predicate = { it.name.localName == "warn" }).with {
         node.findLogger()?.let { logging ->
             node.newLogWrite(node, logging, LogLevel.WARN, node.arguments, connect = true)
         }
     }
 
     // Tag logger.error() calls
-    each<CallExpression>(predicate = { it.name.localName == "error" }).with {
+    each<Call>(predicate = { it.name.localName == "error" }).with {
         node.findLogger()?.let { logging ->
             node.newLogWrite(node, logging, LogLevel.ERROR, node.arguments, connect = true)
         }
     }
 
     // Tag logger.setLevel(X) calls
-    each<CallExpression>(predicate = { it.name.localName == "setLevel" }).with {
+    each<Call>(predicate = { it.name.localName == "setLevel" }).with {
         node.findLogger()?.let { logging ->
             logging.logLevelThreshold =
                 when (node.arguments.firstOrNull()?.code) {
@@ -102,9 +102,9 @@ fun TaggingContext.tagLogging() {
 }
 
 /** Find the corresponding logger for the given call expression by walking the DFG backwards. */
-private fun CallExpression.findLogger(): Logging? {
+private fun Call.findLogger(): Logging? {
     val callee = this.callee
-    if (callee is MemberExpression) {
+    if (callee is MemberAccess) {
         val base = callee.base
         val fulfilledPaths =
             base
@@ -121,7 +121,7 @@ private fun CallExpression.findLogger(): Logging? {
                 .map { path -> path.nodes.last() }
                 .flatMap { it.overlays }
                 .filterIsInstance<LogGet>()
-                .map { it.linkedConcept }
+                .mapNotNull { it.concept as? Logging }
 
         return foundLoggers.firstOrNull()
     }

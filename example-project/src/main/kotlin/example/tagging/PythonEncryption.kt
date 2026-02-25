@@ -24,8 +24,8 @@ import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RNG
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RngGet
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.edges.flows.insertNodeAfterwardInDFGPath
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.getOverlaysByPrevDFG
@@ -57,7 +57,7 @@ fun FernetCipher(node: Node) =
         }
 
 fun TaggingContext.tagEncryption() {
-    each<CallExpression>("Fernet").with {
+    each<Call>("Fernet").with {
         val cipher = FernetCipher(node)
 
         Encryption(basedOn = cipher, secret = null, underlyingNode = node).apply {
@@ -68,7 +68,7 @@ fun TaggingContext.tagEncryption() {
 
 /** Tagging for Fernet encrypt calls */
 fun TaggingContext.tagEncryptionOperation() {
-    each<MemberCallExpression>(predicate = { it.name.localName == "encrypt" }).withMultiple {
+    each<MemberCall>(predicate = { it.name.localName == "encrypt" }).withMultiple {
         val cipher =
             node.overlays.filterIsInstance<Encryption>().singleOrNull()?.basedOn
                 ?: FernetCipher(node) // Fallback: create a cipher if it doesn't exist
@@ -91,7 +91,7 @@ fun TaggingContext.tagEncryptionOperation() {
 
 /** Tagging for Fernet hashlib calls */
 fun TaggingContext.tagHashlib() {
-    each<CallExpression>(predicate = { it.name.toString() == "hashlib.md5" }).withMultiple {
+    each<Call>(predicate = { it.name.toString() == "hashlib.md5" }).withMultiple {
         val hashFunction =
             node.getOverlaysByPrevDFG<HashFunction>(this.state).singleOrNull()
                 ?: HashFunction(hashFunctionName = "MD5", outputSize = 128, node).apply {

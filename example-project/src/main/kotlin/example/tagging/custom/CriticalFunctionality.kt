@@ -18,10 +18,10 @@ package example.tagging.custom
 
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpEndpoint
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Identity
+import de.fraunhofer.aisec.cpg.graph.declarations.Function
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.PasswordBasedAuthentication
-import de.fraunhofer.aisec.cpg.graph.declarations.FunctionDeclaration
 import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.getOverlaysByPrevDFG
@@ -31,10 +31,10 @@ import de.fraunhofer.aisec.cpg.passes.concepts.withMultiple
 
 /** Tagging for Python logging */
 fun TaggingContext.tagCriticalFunctionality() {
-    each<MemberCallExpression> {
+    each<MemberCall> {
             it.name.localName == "get" &&
                 it.base?.name?.localName == "data" &&
-                it.firstParentOrNull<FunctionDeclaration> {
+                it.firstParentOrNull<Function> {
                     it.overlays.any { overlay ->
                         overlay is HttpEndpoint &&
                             listOf("login", "register").any { overlay.url?.endsWith(it) == true }
@@ -43,7 +43,7 @@ fun TaggingContext.tagCriticalFunctionality() {
         }
         .with { Identity() }
 
-    each<FunctionDeclaration> { functionDeclaration ->
+    each<Function> { functionDeclaration ->
             // functionDeclaration.overlays.any { overlay -> overlay is HttpEndpoint } &&
             functionDeclaration.annotations.any { annotation ->
                 annotation.name.localName == "token_required"

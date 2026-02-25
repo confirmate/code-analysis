@@ -19,7 +19,7 @@ package example.tagging
 import de.fraunhofer.aisec.cpg.graph.Name
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Identity
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
@@ -33,7 +33,7 @@ fun TaggingContext.tagPbkdf2AsIdentity() {
     // PasswordBasedAuthentication.
     //  Since the Identity concept seems more high-level, another idea would be to tag against a
     // config value
-    each<CallExpression>("hashlib.pbkdf2_hmac").with {
+    each<Call>("hashlib.pbkdf2_hmac").with {
         Identity(
                 disablePasswordPolicy = false,
                 underlyingNode = null,

@@ -21,10 +21,10 @@ import de.fraunhofer.aisec.cpg.graph.OverlayNode
 import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.GetCurrentTimeOperation
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Time
-import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration
+import de.fraunhofer.aisec.cpg.graph.declarations.Namespace
 import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.graph.imports
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.propagate
@@ -35,13 +35,13 @@ import reactor.core.Exceptions.propagate
 /** Tagging for Python datetime operations */
 fun TaggingContext.tagTime() {
     // Tag datetime.now() calls
-    each<MemberCallExpression>(
+    each<MemberCall>(
             predicate = { it.name.localName == "now" && it.base?.name?.localName == "datetime" }
         )
         .withMultiple {
             val callNode = node
             val dateTimeImport =
-                callNode.firstParentOrNull<NamespaceDeclaration>()?.imports?.firstOrNull {
+                callNode.firstParentOrNull<Namespace>()?.imports?.firstOrNull {
                     it.name.localName == "datetime"
                 }
 

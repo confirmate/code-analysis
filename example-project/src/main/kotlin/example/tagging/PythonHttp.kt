@@ -27,7 +27,7 @@ import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpRequest
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Secret
 import de.fraunhofer.aisec.cpg.graph.evaluate
 import de.fraunhofer.aisec.cpg.graph.statements.expressions.BinaryOperator
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.CallExpression
+import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with
@@ -41,7 +41,7 @@ fun Node?.getUrl(): String? {
 }
 
 fun TaggingContext.tagHttpRequestsGet() {
-    each<CallExpression>("requests.get").with {
+    each<Call>("requests.get").with {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
@@ -103,7 +103,7 @@ fun TaggingContext.tagHttpRequestsGet() {
 }
 
 fun TaggingContext.tagHttpRequestsPost() {
-    each<CallExpression>("requests.post").with {
+    each<Call>("requests.post").with {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
@@ -165,7 +165,7 @@ fun TaggingContext.tagHttpRequestsPost() {
 }
 
 fun TaggingContext.tagHttpRequestsDelete() {
-    each<CallExpression>("requests.delete").with {
+    each<Call>("requests.delete").with {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
@@ -227,7 +227,7 @@ fun TaggingContext.tagHttpRequestsDelete() {
 }
 
 fun TaggingContext.tagHttpRequestsPut() {
-    each<CallExpression>("requests.put").with {
+    each<Call>("requests.put").with {
         val urlArg = node.arguments.firstOrNull()
         val url = urlArg.getUrl()
         val httpClient =
