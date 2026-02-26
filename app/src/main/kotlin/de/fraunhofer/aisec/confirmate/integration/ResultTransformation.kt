@@ -20,9 +20,10 @@ package de.fraunhofer.aisec.confirmate.integration
 
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.confirmate.codyzePort
+import de.fraunhofer.aisec.confirmate.passes.ontologyObjects
 import de.fraunhofer.aisec.cpg.TranslationResult
 import de.fraunhofer.aisec.cpg.graph.*
-import de.fraunhofer.aisec.cpg.graph.declarations.NamespaceDeclaration
+import de.fraunhofer.aisec.cpg.graph.scopes.NamespaceScope
 import de.fraunhofer.aisec.cpg.query.QueryTree
 import io.clouditor.model.*
 import io.ktor.util.logging.Logger
@@ -30,6 +31,76 @@ import java.time.OffsetDateTime
 import kotlin.uuid.*
 
 const val codyzeToolId = "Codyze"
+
+val mapResourceToId = mutableMapOf<Node, String>()
+
+val Node.resourceId: String?
+    get() {
+        var node =
+            if (this is OverlayNode) {
+                this.underlyingNode
+            } else {
+                this
+            }
+        do {
+            mapResourceToId[node]?.let {
+                return it
+            }
+            node = node?.astParent
+        } while (node != null)
+
+        return null
+    }
+
+private fun QueryTree<*>.createAssessmentResult(
+    requirementId: String,
+    resourceId: String,
+    value: Boolean,
+    metricId: String,
+    currentTimestamp: OffsetDateTime,
+    toeId: String,
+    evidenceId: String,
+): AssessmentResult {
+    return AssessmentResult(
+        id = Uuid.random().toString(),
+        createdAt = currentTimestamp,
+        metricId = metricId,
+        metricConfiguration =
+            MetricConfiguration(
+                operator = "==",
+                targetValue = true,
+                metricId = metricId,
+                targetOfEvaluationId = toeId,
+                isDefault = true,
+            ),
+        compliant = value,
+        evidenceId = evidenceId,
+        resourceId = resourceId,
+        resourceTypes = listOf("Code"),
+        complianceComment =
+            """
+                    ${this.stringRepresentation}
+                  
+                    [View the result in Codyze](http://localhost:$codyzePort/requirements/$requirementId?targetNodeId=${this.id})
+                    """
+                .trimIndent(),
+        targetOfEvaluationId = toeId,
+        toolId = codyzeToolId,
+        historyUpdatedAt = currentTimestamp,
+        history = listOf(Record(this.id.toString(), currentTimestamp)),
+        complianceDetails = listOf(),
+    )
+}
+
+fun QueryTree<*>.flattenChildren(originalQt: QueryTree<*>): List<QueryTree<*>> {
+    return if (this.node?.resourceId != null) {
+        listOf(this)
+    } else if (children.isNotEmpty()) {
+        this.children.flatMap { it.flattenChildren(originalQt) }
+    } else {
+        listOf(originalQt)
+    }
+}
 
 context(currentTimestamp: OffsetDateTime, toe: TranslationResult)
 @OptIn(ExperimentalUuidApi::class)
@@ -39,40 +110,24 @@ private fun QueryTree<*>.toAssessmentResult(
 ): List<AssessmentResult> {
     val metricId = this.metricId
     val value = this.value as? Boolean
-    val toeId = toe.id.toString()
+    val toeId = "00000000-0000-0000-0000-000000000000" // toe.id.toString()
     if (value != null && metricId != null) {
         // We have a metric ID, so we can create an assessment result
-        return listOf(
-            AssessmentResult(
-                id = Uuid.random().toString(),
-                createdAt = currentTimestamp,
+        // Go down a bit further until there is a resource ID for the children.
+        val flattenedQueryTrees = this.flattenChildren(this).toSet()
+
+        return flattenedQueryTrees.map { qt ->
+            val perciseValue = qt.value as? Boolean ?: value
+            createAssessmentResult(
+                requirementId = requirementId,
+                resourceId = qt.node?.resourceId.toString(),
+                value = perciseValue || value,
                 metricId = metricId,
-                metricConfiguration =
-                    MetricConfiguration(
-                        operator = "==",
-                        targetValue = true,
-                        metricId = metricId,
-                        targetOfEvaluationId = toeId,
-                        isDefault = true,
-                    ),
-                compliant = value,
+                currentTimestamp = currentTimestamp,
+                toeId = toeId,
                 evidenceId = evidenceId,
-                resourceId = this.node?.firstParentOrNull<Component>()?.id.toString(),
-                resourceTypes = listOf("Code"),
-                complianceComment =
-                    """
-                    ${this.stringRepresentation}
-                  
-                    [View the result in Codyze](http://localhost:$codyzePort/requirements/$requirementId?targetNodeId=${this.id})
-                    """
-                        .trimIndent(),
-                targetOfEvaluationId = toeId,
-                toolId = codyzeToolId,
-                historyUpdatedAt = currentTimestamp,
-                history = listOf(Record(this.id.toString(), currentTimestamp)),
-                complianceDetails = listOf(),
             )
-        )
+        }
     } else {
         // No metric ID, so we cannot create an assessment result. Go to the children
         return this.children.flatMap { it.toAssessmentResult(requirementId, evidenceId) }
@@ -112,15 +167,29 @@ fun AnalysisResult.toConfirmateResult(): ConfirmateResults {
             }
             evidences += app
 
-            // Filter the root namespaces
             val modules =
                 component.namespaces
-                    .filter { it.namespaces.size == 1 }
+                    .mapNotNull { it.declaringScope }
+                    .filterIsInstance<NamespaceScope>()
+                    .toSet()
                     .map {
-                        log.info("Creating evidence for namespace ${component.name}")
-                        it.toResource(app.id).toEvidence()
+                        log.info("Creating evidence for namespace ${it.name}")
+                        it.toResource(component.id.toString()).toEvidence()
                     }
+
             evidences += modules
+        }
+
+        // Add library resources from ontologyObjects (e.g., from RequirementsPass)
+        val libraryResources =
+            this@toConfirmateResult.translationResult.ontologyObjects.filterIsInstance<Library>()
+        libraryResources.forEach { library ->
+            log.info("Creating evidence for library ${library.name}")
+            val libraryEvidence =
+                with(this@toConfirmateResult.translationResult) {
+                    Resource(library = library).toEvidence()
+                }
+            evidences += libraryEvidence
         }
     }
 
@@ -146,7 +215,7 @@ private fun Resource.toEvidence(): Evidence {
         // new evidence ID
         id = Uuid.random().toString(),
         timestamp = OffsetDateTime.now(),
-        targetOfEvaluationId = toe.id.toString(),
+        targetOfEvaluationId = "00000000-0000-0000-0000-000000000000", // toe.id.toString()
         toolId = codyzeToolId,
         resource = this,
     )
@@ -163,10 +232,12 @@ private fun Component.toResource(): Resource {
     val isLibrary = this.name.contains("Library") || this.name.startsWith("lib")
 
     return if (isLibrary) {
+        mapResourceToId[this] = this.id.toString()
         Resource(
             library = Library(id = this.id.toString(), name = this.name.toString(), raw = this.code)
         )
     } else {
+        mapResourceToId[this] = this.id.toString()
         Resource(
             application =
                 Application(id = this.id.toString(), name = this.name.toString(), raw = this.code)
@@ -174,9 +245,10 @@ private fun Component.toResource(): Resource {
     }
 }
 
-/** Converts a [NamespaceDeclaration] to a [Resource] object for Confirmate. */
-fun NamespaceDeclaration.toResource(componentId: String? = null): Resource {
+/** Converts a [NamespaceScope] to a [Resource] object for Confirmate. */
+fun NamespaceScope.toResource(componentId: String? = null): Resource {
     val parent = this.name.parent
+    mapResourceToId[this] = this.name.toString()
     return Resource(
         sourceCodeFile =
             SourceCodeFile(

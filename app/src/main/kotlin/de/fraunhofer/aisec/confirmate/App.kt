@@ -21,6 +21,8 @@ import de.fraunhofer.aisec.codyze.AnalysisResult
 import de.fraunhofer.aisec.codyze.console.ConsoleService
 import de.fraunhofer.aisec.codyze.console.startConsole
 import de.fraunhofer.aisec.confirmate.integration.ClouditorClient
+import de.fraunhofer.aisec.confirmate.passes.RequirementsPass
+import de.fraunhofer.aisec.confirmate.passes.VulnerabilityEnrichmentPass
 import de.fraunhofer.aisec.cpg.TranslationConfiguration
 import de.fraunhofer.aisec.cpg.passes.concepts.TagOverlaysPass
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
@@ -43,7 +45,8 @@ fun evaluateWithCodyze(
     profile: (TranslationConfiguration.Builder) -> TranslationConfiguration.Builder = { it },
 ): AnalysisResult? {
     val absoluteFile = Path(scriptFile).absolute()
-    val project = AnalysisProject.fromScript(absoluteFile) { profile(it) }
+    val project =
+        AnalysisProject.fromScript(absoluteFile) { profile(it).withRequirementsAnalysis() }
     val result = project?.analyze() ?: return null
 
     // Print some performance metrics
@@ -60,4 +63,14 @@ fun evaluateWithCodyze(
 fun TranslationConfiguration.Builder.taggingProfiles(profiles: TaggingContext.() -> Unit) {
     registerPass<TagOverlaysPass>()
     configurePass<TagOverlaysPass>(TagOverlaysPass.Configuration(tag { apply(profiles) }))
+}
+
+/**
+ * Registers the RequirementsPass to analyze requirements.txt files and VulnerabilityEnrichmentPass
+ * to check for vulnerabilities.
+ */
+fun TranslationConfiguration.Builder.withRequirementsAnalysis(): TranslationConfiguration.Builder {
+    registerPass<RequirementsPass>()
+    registerPass<VulnerabilityEnrichmentPass>()
+    return this
 }
