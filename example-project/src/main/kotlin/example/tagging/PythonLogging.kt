@@ -21,9 +21,9 @@ import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogWrite
 import de.fraunhofer.aisec.cpg.graph.concepts.logging.newLogging
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.evaluate
+import de.fraunhofer.aisec.cpg.graph.expressions.Call
+import de.fraunhofer.aisec.cpg.graph.expressions.MemberAccess
 import de.fraunhofer.aisec.cpg.graph.followPrevFullDFGEdgesUntilHit
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberAccess
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with

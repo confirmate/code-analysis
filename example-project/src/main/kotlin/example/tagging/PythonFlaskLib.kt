@@ -21,7 +21,7 @@ import de.fraunhofer.aisec.cpg.graph.Annotation
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpEndpoint
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.HttpMethod
 import de.fraunhofer.aisec.cpg.graph.declarations.Function
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.*
+import de.fraunhofer.aisec.cpg.graph.expressions.*
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.with

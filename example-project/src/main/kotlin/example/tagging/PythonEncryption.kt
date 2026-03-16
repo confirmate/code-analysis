@@ -24,8 +24,8 @@ import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RNG
 import de.fraunhofer.aisec.cpg.graph.concepts.manualExtensions.RngGet
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
 import de.fraunhofer.aisec.cpg.graph.edges.flows.insertNodeAfterwardInDFGPath
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Call
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
+import de.fraunhofer.aisec.cpg.graph.expressions.Call
+import de.fraunhofer.aisec.cpg.graph.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.getOverlaysByPrevDFG

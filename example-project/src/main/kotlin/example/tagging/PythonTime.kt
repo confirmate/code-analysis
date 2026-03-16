@@ -22,9 +22,9 @@ import de.fraunhofer.aisec.cpg.graph.codeAndLocationFrom
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.GetCurrentTimeOperation
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.Time
 import de.fraunhofer.aisec.cpg.graph.declarations.Namespace
+import de.fraunhofer.aisec.cpg.graph.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.graph.firstParentOrNull
 import de.fraunhofer.aisec.cpg.graph.imports
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.MemberCall
 import de.fraunhofer.aisec.cpg.passes.concepts.TaggingContext
 import de.fraunhofer.aisec.cpg.passes.concepts.each
 import de.fraunhofer.aisec.cpg.passes.concepts.propagate

@@ -24,7 +24,7 @@ import de.fraunhofer.aisec.cpg.graph.GraphToFollow
 import de.fraunhofer.aisec.cpg.graph.Node
 import de.fraunhofer.aisec.cpg.graph.OverlayNode
 import de.fraunhofer.aisec.cpg.graph.concepts.ontology.*
-import de.fraunhofer.aisec.cpg.graph.statements.expressions.Literal
+import de.fraunhofer.aisec.cpg.graph.expressions.Literal
 import de.fraunhofer.aisec.cpg.query.GenericQueryOperators
 import de.fraunhofer.aisec.cpg.query.May
 import de.fraunhofer.aisec.cpg.query.QueryTree
