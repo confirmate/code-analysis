@@ -1,8 +1,13 @@
 from backend.app.models import User, Password
 from backend.app import db
 from backend.app.utils.encryption import encrypt_password, decrypt_password
+import logging
+import datetime
+
+logger = logging.getLogger(__name__)
 
 def get_passwords(user_id):
+    logger.info("Get passwords for user_id: %s", user_id)
     passwords = Password.query.filter_by(user_id=user_id).all()
     user = User.query.get(user_id)
     return [{
@@ -13,13 +18,15 @@ def get_passwords(user_id):
     } for p in passwords]
 
 def add_password(user_id, data):
+    logger.info("Adding new password entry for user_id: %s", user_id)
     user = User.query.get(user_id)
-    new_password = Password(
-        user_id=user_id,
-        website=data['website'],
-        username=data['username'],
-        encrypted_password=encrypt_password(data['password'], user.master_password_hash)
-    )
+    encrypted_pwd = encrypt_password(data['password'], user.master_password_hash)
+    new_password = Password()
+    new_password.user_id = user.id
+    new_password.website = data['website']
+    new_password.username = data['username']
+    new_password.encrypted_password = encrypted_pwd
+
     db.session.add(new_password)
     db.session.commit()
     return {
@@ -30,6 +37,7 @@ def add_password(user_id, data):
     }
 
 def update_password(user_id, password_id, data):
+    logger.info("Updating password entry %s for user_id: %s", password_id, user_id)
     password = Password.query.filter_by(id=password_id, user_id=user_id).first()
     user = User.query.get(user_id)
     if password and user:

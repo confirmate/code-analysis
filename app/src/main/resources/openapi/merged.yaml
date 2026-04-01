@@ -1,0 +1,99 @@
+---
+servers:
+- url: "http://localhost:8080"
+openapi: "3.0.3"
+paths:
+  /v1/orchestrator/metrics/{metric.id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1metrics~1{metric.id}"
+  /v1/orchestrator/certificates:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1certificates"
+  /v1/orchestrator/targets_of_evaluation/{targetOfEvaluationId}/metric_configurations/{metricId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1{targetOfEvaluationId}~1metric_configurations~1{metricId}"
+  /v1/orchestrator/targets_of_evaluation/{target_of_evaluation.id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1{target_of_evaluation.id}"
+  /v1/orchestrator/assessment_tools/{tool.id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1assessment_tools~1{tool.id}"
+  /v1/orchestrator/metrics/{metricId}/implementation:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1metrics~1{metricId}~1implementation"
+  /v1/evidence_store/evidence:
+    $ref: "./evidence.yaml#/paths/~1v1~1evidence_store~1evidence"
+  /v1experimental/evidence/graph/edges:
+    $ref: "./evidence.yaml#/paths/~1v1experimental~1evidence~1graph~1edges"
+  /v1/orchestrator/assessment_tools/{toolId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1assessment_tools~1{toolId}"
+  /v1/orchestrator/controls:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1controls"
+  /v1/orchestrator/public/certificates:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1public~1certificates"
+  /v1/evidence_store/supported_resource_types:
+    $ref: "./evidence.yaml#/paths/~1v1~1evidence_store~1supported_resource_types"
+  /v1/orchestrator/metrics/{metricId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1metrics~1{metricId}"
+  /v1/evidence_store/evidences/{evidenceId}:
+    $ref: "./evidence.yaml#/paths/~1v1~1evidence_store~1evidences~1{evidenceId}"
+  /v1/orchestrator/targets_of_evaluation:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation"
+  /v1/orchestrator/metrics/{implementation.metric_id}/implementation:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1metrics~1{implementation.metric_id}~1implementation"
+  /v1/orchestrator/catalogs/{catalogId}/category/{categoryName}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalogId}~1category~1{categoryName}"
+  /v1/orchestrator/targets_of_evaluation/{targetOfEvaluationId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1{targetOfEvaluationId}"
+  /v1/orchestrator/metrics:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1metrics"
+  /v1/evidence_store/evidences:
+    $ref: "./evidence.yaml#/paths/~1v1~1evidence_store~1evidences"
+  /v1/orchestrator/assessment_tools:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1assessment_tools"
+  /v1/orchestrator/catalogs/{catalogId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalogId}"
+  /v1/ontology/noop:
+    $ref: "./ontology.yaml#/paths/~1v1~1ontology~1noop"
+  /v1/orchestrator/audit_scopes/{auditScopeId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1audit_scopes~1{auditScopeId}"
+  /v1/orchestrator/runtime_info:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1runtime_info"
+  /v1/orchestrator/targets_of_evaluation/{audit_scope.target_of_evaluation_id}/audit_scopes/{audit_scope.catalog_id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1{audit_scope.target_of_evaluation_id}~1audit_scopes~1{audit_scope.catalog_id}"
+  /v1/orchestrator/audit_scopes:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1audit_scopes"
+  /v1/orchestrator/catalogs/{catalogId}/categories/{categoryName}/controls:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalogId}~1categories~1{categoryName}~1controls"
+  /v1/orchestrator/targets_of_evaluation/{targetOfEvaluationId}/metric_configurations:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1{targetOfEvaluationId}~1metric_configurations"
+  /v1/orchestrator/assessment_results/{id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1assessment_results~1{id}"
+  /v1/orchestrator/certificates/{certificate.id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1certificates~1{certificate.id}"
+  /v1/assessment/evidences:
+    $ref: "./assessment.yaml#/paths/~1v1~1assessment~1evidences"
+  /v1/evidence_store/resources:
+    $ref: "./evidence.yaml#/paths/~1v1~1evidence_store~1resources"
+  /v1/evaluation/evaluate/{auditScopeId}/stop:
+    $ref: "./evaluation.yaml#/paths/~1v1~1evaluation~1evaluate~1{auditScopeId}~1stop"
+  /v1/orchestrator/catalogs/{catalogId}/categories/{categoryName}/controls/{controlId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalogId}~1categories~1{categoryName}~1controls~1{controlId}"
+  /v1/evaluation/evaluate/{auditScopeId}/start:
+    $ref: "./evaluation.yaml#/paths/~1v1~1evaluation~1evaluate~1{auditScopeId}~1start"
+  /v1/orchestrator/catalogs/{catalog.id}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalog.id}"
+  /v1/orchestrator/assessment_results:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1assessment_results"
+  /v1/orchestrator/targets_of_evaluation/statistics:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1targets_of_evaluation~1statistics"
+  /v1/discovery/start:
+    $ref: "./discovery.yaml#/paths/~1v1~1discovery~1start"
+  /v1/evaluation/results:
+    $ref: "./evaluation.yaml#/paths/~1v1~1evaluation~1results"
+  /v1experimental/evidence_store/resources/{resource.id}:
+    $ref: "./evidence.yaml#/paths/~1v1experimental~1evidence_store~1resources~1{resource.id}"
+  /v1/orchestrator/catalogs:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs"
+  /v1/orchestrator/catalogs/{catalogId}/controls:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1catalogs~1{catalogId}~1controls"
+  /v1/orchestrator/certificates/{certificateId}:
+    $ref: "./orchestrator.yaml#/paths/~1v1~1orchestrator~1certificates~1{certificateId}"
+info:
+  title: "merged spec"
+  description: "merged spec"
+  version: "1.0.0"

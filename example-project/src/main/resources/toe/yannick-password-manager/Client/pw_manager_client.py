@@ -2,8 +2,12 @@ import requests
 import hashlib
 import secrets
 import binascii
+import logging
 from rapidfuzz import fuzz
 from cryptography.fernet import Fernet
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # @PersonalData
 CURRENT_USER_ID = None
@@ -23,6 +27,7 @@ def menue():
         print("8) Google Analytics SEND")
         print("9) Google Analytics RCV")
         print("10) Google Analytics RCV CURL")
+        print("11) Backup erstellen")
 
         inp = input()
 
@@ -47,6 +52,8 @@ def menue():
                 ga4_rcv()
             case "10":
                 ga4_rcv_curl()
+            case "11":
+                backup_passwords()
 
 
 def reg():
@@ -63,6 +70,7 @@ def reg():
 
     fernet_key = Fernet.generate_key().decode()
 
+    logging.info(f"Registering new user: {user}")
     r = requests.post("http://127.0.0.1:5000/users",json={"username": user, "password": hash_hex, "salt": salt_hex, "fernet_key": fernet_key})
 
 
@@ -77,6 +85,7 @@ def add_entry():
     fernet = Fernet(FERNET_KEY)
     encrypted_pw = fernet.encrypt(password.encode()).decode()
 
+    logging.info(f"Adding entry for site: {site}")
     r = requests.post("http://127.0.0.1:5000/add_entry",json={"id": CURRENT_USER_ID, "site": site, "username": name, "password": encrypted_pw})
     print(r.json())
 
@@ -85,6 +94,7 @@ def read_all():
         print("Bitte zuerst einloggen.")
         return
 
+    logging.info(f"Fetching all entries for user ID: {CURRENT_USER_ID}")
     url = f"http://127.0.0.1:5000/entry/{CURRENT_USER_ID}"
     r = requests.get(url)
 
@@ -110,6 +120,7 @@ def search_entry():
         print("Bitte zuerst einloggen")
         return
     inp = input("Nach Eintrag in Seite oder Benutzername suchen: ").strip()
+    logging.info(f"Searching entries for user ID: {CURRENT_USER_ID}")
     r = requests.get(f"http://127.0.0.1:5000/entry/{CURRENT_USER_ID}")
     data = r.json()
     print("-------------- Einträge --------------")
@@ -147,6 +158,7 @@ def delete_entry():
     inp = int(input("ID zum Löschen: "))
     answer = input(f"Wollen Sie wirklich den Eintrag mit der ID {inp} löschen? Y/N: ")
     if answer.lower() == "y":
+        logging.info(f"User {CURRENT_USERNAME} deleting entry with ID: {inp}")
         r = requests.post("http://127.0.0.1:5000/del_entry", json={"id": inp, "user_id": CURRENT_USER_ID})
         print(r.json())
     else:
@@ -163,8 +175,10 @@ def delete_user():
     answer = input(f"Wollen Sie wirklich den Benutzer mit der ID {CURRENT_USER_ID} löschen? Y/N: ")
     if answer.lower() == "y":
         inp = CURRENT_USER_ID
+        logging.info(f"Deleting user with ID: {inp}")
         r = requests.post("http://127.0.0.1:5000/del_user", json={"user_id": inp})
         print(r.json())
+        logging.info(f"Deleting all entries for user ID: {inp}")
         r = requests.post("http://127.0.0.1:5000/del_entry", json={"user_id": inp})
         print(r.json())
     else:
@@ -176,6 +190,7 @@ def log():
     user = input("Benutzername: ").strip()
     password = input("Passwort: ").strip()
 
+    logging.info(f"Login attempt for user: {user}")
     r = requests.post("http://127.0.0.1:5000/salt", json={"username": user})
     data = r.json()
     if not data.get("ok"):
@@ -190,14 +205,17 @@ def log():
     client_hash = derive_pbkdf2(password, salt_bytes)
     client_hash_hex = binascii.hexlify(client_hash).decode()
 
+    logging.info(f"Sending login request to server for user: {user}")
     r = requests.post("http://127.0.0.1:5000/login",json={"username": user, "client_hash": client_hash_hex})
     data = r.json()
 
     if data.get("ok"):
         CURRENT_USER_ID = data["user_id"]
         CURRENT_USERNAME = data["username"]
+        logging.info(f"User {user} successfully logged in")
         print(f"Eingeloggt  als Username: {CURRENT_USERNAME}, FernetKey {FERNET_KEY}")
     else:
+        logging.info(f"Login failed for user: {user}")
         print(f"Fehler {data}")
 
     print(data)
@@ -211,6 +229,7 @@ def google_analytics():
         print("Bitte erst anmelden.")
         return
 
+    logging.info(f"Sending Google Analytics event for user: {CURRENT_USERNAME}")
     try:
         r = requests.post("http://127.0.0.1:5000/google_analytics", json={"username": CURRENT_USERNAME, "user_id": CURRENT_USER_ID}, timeout=10)
         data = r.json()
@@ -239,6 +258,7 @@ def ga4_rcv():
     if CURRENT_USERNAME is None:
         print("Bitte erst anmelden.")
         return
+    logging.info("Fetching GA4 data")
     r = requests.post("http://127.0.0.1:5000/ga4_rcv")
     data = r.json()
     print("GA4 Daten:", data)
@@ -250,12 +270,48 @@ def ga4_curl():
     if CURRENT_USERNAME is None:
         print("Bitte erst anmelden.")
         return
+    logging.info("Fetching GA4 data via curl")
     r = requests.post("http://127.0.0.1:5000/ga4_curl")
     data = r.json()
     print("GA4 Daten:", data)
 
     for row in data.get("rows", []):
         print(f"{row['eventName']} ({row['username']}): {row['eventCount']}")
+
+def backup_passwords():
+    """
+    Encrypts all password entries and saves them to a file.
+    This demonstrates encryption before persisting data to disk.
+    """
+    if CURRENT_USER_ID is None:
+        print("Bitte zuerst einloggen.")
+        return
+
+    filename = input("Backup-Dateiname eingeben: ")
+
+    # Get all entries for the current user
+    logging.info(f"Creating backup for user ID: {CURRENT_USER_ID}")
+    r = requests.get(f"http://127.0.0.1:5000/entry/{CURRENT_USER_ID}")
+    data = r.json()
+
+    if not data:
+        print("Keine Einträge zum Sichern vorhanden.")
+        return
+
+    # Create backup content with sensitive data
+    backup_content = ""
+    for e in data:
+        backup_content += f"{e['site']},{e['username']},{e['password']}\n"
+
+    # Encrypt backup content before writing to disk
+    fernet = Fernet(FERNET_KEY)
+    encrypted_backup = fernet.encrypt(backup_content.encode())
+
+    # Write encrypted backup to file (persistent storage)
+    with open(filename, 'wb') as f:
+        f.write(encrypted_backup)
+
+    print(f"Backup erfolgreich erstellt: {filename}")
 
 if __name__ == "__main__":
     #logi()

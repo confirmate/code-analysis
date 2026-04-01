@@ -14,22 +14,23 @@
  *  limitations under the License.
  *
  */
-import example.tagging.*
-import example.tagging.custom.*
+package example
 
 project {
-    tagging {
-        tag {
-            tagHttpRequests()
-            tagLogging()
-            tagPythonEncryption()
-            tagIdentity()
-            tagPythonDatabase()
-            tagFlaskEndpoints()
-            tagTime()
+    suppressions {
+        /** Suppress the warning about missing opt-out checks on logging calls. */
+        queryTree(
+            { qt: QueryTree<Boolean> ->
+                qt.stringRepresentation ==
+                    "Some logging statements are not controlled by an opt-out mechanism based on user input."
+            } to true
+        )
 
-            // TOE-specific tagging
-            tagCriticalFunctionality()
-        }
+        /** Registration does not require prior authentication. */
+        queryTree(
+            { qt: QueryTree<Boolean> ->
+                qt.stringRepresentation == "There endpoint register_POST is not authenticated."
+            } to true
+        )
     }
 }
