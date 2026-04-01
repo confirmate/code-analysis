@@ -53,6 +53,14 @@ class ClouditorClient {
             ) {
                 basicAuth(clientID, clientSecret)
             }
+
+        if (!response.status.isSuccess()) {
+            log.error(
+                "OAuth token request failed with status ${response.status.value}: ${response.status.description}"
+            )
+            return null
+        }
+
         val map = response.body<HashMap<String, String>>()
 
         return map["access_token"]
@@ -62,8 +70,8 @@ class ClouditorClient {
         val token =
             runBlocking {
                 oauthToken(
-                    System.getenv("AUTH_CLIENT_ID") ?: "clouditor",
-                    System.getenv("AUTH_CLIENT_SECRET") ?: "clouditor",
+                    System.getenv("AUTH_CLIENT_ID") ?: "confirmate",
+                    System.getenv("AUTH_CLIENT_SECRET") ?: "confirmate",
                 )
             }
                 ?: run {

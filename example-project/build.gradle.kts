@@ -5,4 +5,6 @@ dependencies {
     api(project(":queries"))
 }
 
-application { mainClass = "example.MainKt" }
+application { mainClass = "de.fraunhofer.aisec.example.MainKt" }
+
+tasks.named<JavaExec>("run") { workingDir = rootProject.projectDir }
