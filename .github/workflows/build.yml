@@ -1,0 +1,97 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - v*.**
+    paths-ignore:
+      - "docs/**"
+  merge_group:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths-ignore:
+      - "docs/**"
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  build:
+    timeout-minutes: 15
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "corretto"
+          java-version: "21"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Determine Version
+        run: |
+          # determine version from tag
+          export VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+          if [[ $VERSION != v* ]]
+          then
+            export VERSION="${VERSION}-SNAPSHOT"
+            echo "Building as ${VERSION}"
+          else
+            # make version more Java-friendly by dropping the 'v'
+            export VERSION=${VERSION:1:${#VERSION}}
+            echo "Building as ${VERSION}"
+          fi
+          # store version in GitHub environment file
+          echo "version=$VERSION" >> $GITHUB_ENV
+      - name: Install JEP
+        run: |
+          python3 -m venv ~/.virtualenvs/cpg
+          source ~/.virtualenvs/cpg/bin/activate
+          pip3 install jep==$(grep "black.ninia:jep" gradle/libs.versions.toml | grep -o -E "[0-9]\d*(\.[0-9]\d*)*")
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Build ${{ env.version }}
+        run: |
+          ./gradlew --parallel spotlessCheck -x spotlessApply build -x distZip -x distTar koverXmlReport koverHtmlReport
+        id: build
+        env:
+          ORG_GRADLE_PROJECT_version: ${{ env.version }}
+      - name: Prepare report.xml for Codecov
+        run: |
+          # this is needed because codecov incorrectly reports lines that have no coverage information (good or bad) as a miss
+          # See https://github.com/codecov/feedback/issues/564 and https://github.com/Kotlin/kotlinx-kover/issues/699.
+          # Actually these lines should just not exist in the coverage XML file, since they are only structural elements, such
+          # as brackets.
+          cat ./build/reports/kover/report.xml | grep -v 'mi="0" ci="0" mb="0" cb="0"' > ./build/reports/kover/report-codecov.xml
+          rm ./build/reports/kover/report.xml
+      - name: Upload Code Coverage
+        uses: codecov/codecov-action@v5
+        with:
+          fail_ci_if_error: true
+          files: ./build/reports/kover/report-codecov.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+      - name: Upload test results to Codecov
+        if: ${{ false && !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          os: linux-arm64
+      - name: Prepare test and coverage reports
+        if: ${{ always() }}
+        run: |
+          zip -r reports.zip **/build/reports/**/** || true
+      - name: Archive test and coverage reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: reports.zip
+
