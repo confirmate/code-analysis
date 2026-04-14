@@ -9,7 +9,6 @@
   }
 
   const tabs: Tab[] = [
-    { name: 'Overview', href: '/overview' },
     { name: 'Document Generator', href: '/document' }
   ];
 

@@ -6,7 +6,7 @@
   <div class="mx-auto px-6">
     <div class="flex h-16 items-center justify-between">
       <div class="flex items-center">
-        <a href="/overview" class="flex items-center">
+        <a href="/document" class="flex items-center">
           <span class="text-2xl font-bold text-gray-900">Technical Documentation</span>
         </a>
       </div>

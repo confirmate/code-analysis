@@ -10,7 +10,7 @@
 
   onMount(async () => {
     if ($page.url.pathname === '/') {
-      goto('/overview');
+      goto('/document');
     }
   });
 </script>
