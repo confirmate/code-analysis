@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Evidence } from '$lib/types/evidence';
+  import type { SchemaEvidence as Evidence } from '$lib/api/openapi/evidence';
   import { getResourceData } from '$lib/types/evidence';
   import { findEvidenceByType, type ManufacturerInfo } from '$lib/utils/templateMapper';
   import Field from './Field.svelte';

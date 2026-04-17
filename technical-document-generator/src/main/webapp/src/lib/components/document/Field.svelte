@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Evidence } from '$lib/types/evidence';
+  import type { SchemaEvidence as Evidence } from '$lib/api/openapi/evidence';
   import { getResourceType, getResourceData } from '$lib/types/evidence';
   import { openPopover, popover } from './popoverStore.svelte';
 

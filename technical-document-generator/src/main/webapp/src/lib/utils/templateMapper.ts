@@ -1,4 +1,5 @@
-import type { Evidence, ResourceType } from '$lib/types/evidence';
+import type { SchemaEvidence as Evidence } from '$lib/api/openapi/evidence';
+import type { ResourceType } from '$lib/types/evidence';
 import { getResourceType } from '$lib/types/evidence';
 
 export interface ManufacturerInfo {

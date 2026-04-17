@@ -1,5 +1,5 @@
 import type { PageLoad } from './$types';
-import type { Evidence } from '$lib/types/evidence';
+import type { SchemaEvidence as Evidence } from '$lib/api/openapi/evidence';
 
 export const load: PageLoad = async ({ fetch }) => {
   try {
