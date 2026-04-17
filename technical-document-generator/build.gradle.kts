@@ -43,4 +43,4 @@ var jarTasks = tasks.withType<Jar>()
 
 jarTasks.forEach { it.dependsOn(pnpmBuild) }
 
-ktor { fatJar { archiveFileName.set("technical-document-generator.jar") } }
+tasks.shadowJar { setProperty("zip64", true) }

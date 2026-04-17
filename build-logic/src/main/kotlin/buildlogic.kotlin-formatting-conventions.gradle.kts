@@ -29,10 +29,12 @@ val headerWithStars = """/*
 spotless {
     kotlin {
         target("**/*.kt", "**/*.codyze.kts")
+        targetExclude("**/.gradle/**", "**/build/**", "**/node_modules/**")
         ktfmt("0.55").kotlinlangStyle()
         licenseHeader(headerWithStars).yearSeparator(" - ")
     }
     kotlinGradle {
+        targetExclude("**/.gradle/**", "**/build/**")
         ktfmt().kotlinlangStyle()
     }
 }

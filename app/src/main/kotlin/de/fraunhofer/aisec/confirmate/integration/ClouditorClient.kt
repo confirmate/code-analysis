@@ -103,7 +103,7 @@ class ClouditorClient {
         evidenceApi = EvidenceStoreApi(baseUrl, httpClientConfig = config, jsonBlock = jsonBlock)
     }
 
-    suspend fun listEvidences(targetOfEvaluationId: String): List<Evidence> {
+    suspend fun listEvidences(targetOfEvaluationId: String? = null): List<Evidence> {
         val evidences = mutableListOf<Evidence>()
         var pageToken: String? = null
         

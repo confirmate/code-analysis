@@ -1,3 +1,19 @@
+/*
+ * This file is part of the Confirmate project.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ */
 package de.fraunhofer.aisec.confirmate.technicaldocument
 
 import de.fraunhofer.aisec.confirmate.integration.ClouditorClient
@@ -16,22 +32,12 @@ fun Application.configureRouting(client: ClouditorClient) {
 
 fun Routing.apiRoutes(client: ClouditorClient) {
     route("/api") {
-        get("/evidences/{toeId}") {
-            val toeId =
-                call.parameters["toeId"]
-                    ?: return@get call.respond(
-                        HttpStatusCode.BadRequest,
-                        mapOf("error" to "Missing targetOfEvaluationId"),
-                    )
-
+        get("/evidences") {
             try {
-                val evidences = client.listEvidences(toeId)
+                val evidences = client.listEvidences()
                 call.respond(mapOf("evidences" to evidences))
             } catch (e: Exception) {
-                call.respond(
-                    HttpStatusCode.InternalServerError,
-                    mapOf("error" to e.message),
-                )
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
             }
         }
     }

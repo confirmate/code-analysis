@@ -1,30 +1,33 @@
-export interface Evidence {
-  id: string;
-  timestamp: string;
-  targetOfEvaluationId: string;
-  toolId: string;
-  resource: Record<string, Record<string, any>>;
-}
+import type { SchemaEvidence, SchemaResource } from '$lib/api/openapi/evidence';
 
-export interface EvidenceWrapper {
-  evidence: Evidence;
-}
+export type Evidence = SchemaEvidence;
+export type Resource = SchemaResource;
 
-export interface EvidencesResponse {
-  evidences: EvidenceWrapper[];
-}
+/** Keys of the Resource*/
+export type ResourceType = keyof Resource;
+
+/**
+ * Value type for a given resource key, e.g. ResourceData<'product'> = SchemaProduct.
+ * Non-null because the format only includes the key that is actually set.
+ */
+export type ResourceData<K extends ResourceType> = NonNullable<Resource[K]>;
 
 /**
  * Extract the resource type key from an evidence (e.g. "product", "application", "contactPerson").
+ * The ontology Resource schema is a oneOf where exactly one key is set.
  */
-export function getResourceType(evidence: Evidence): string {
-  return Object.keys(evidence.resource)[0] ?? 'unknown';
+export function getResourceType(evidence: Evidence): ResourceType | 'unknown' {
+  const resource = evidence.resource;
+  if (!resource) return 'unknown';
+  const key = Object.keys(resource)[0] as ResourceType | undefined;
+  return key ?? 'unknown';
 }
 
-/**
- * Extract the resource data from an evidence.
- */
-export function getResourceData(evidence: Evidence): Record<string, any> {
-  const type = getResourceType(evidence);
-  return evidence.resource[type] ?? {};
+/** Extract the resource data from an evidence, preserving the specific resource type. */
+export function getResourceData(evidence: Evidence): ResourceData<ResourceType> | null {
+  const resource = evidence.resource;
+  if (!resource) return null;
+  const key = getResourceType(evidence);
+  if (key === 'unknown') return null;
+  return resource[key] ?? null;
 }
