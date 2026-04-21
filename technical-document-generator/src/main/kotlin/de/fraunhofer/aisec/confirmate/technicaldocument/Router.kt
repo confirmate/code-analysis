@@ -32,9 +32,18 @@ fun Application.configureRouting(client: ClouditorClient) {
 
 fun Routing.apiRoutes(client: ClouditorClient) {
     route("/api") {
+        get("/targets-of-evaluation") {
+            try {
+                val toes = client.listTargetOfEvaluations()
+                call.respond(mapOf("targetsOfEvaluation" to toes))
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))
+            }
+        }
         get("/evidences") {
             try {
-                val evidences = client.listEvidences()
+                val toeId = call.request.queryParameters["targetOfEvaluationId"]
+                val evidences = client.listEvidences(targetOfEvaluationId = toeId)
                 call.respond(mapOf("evidences" to evidences))
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("error" to e.message))

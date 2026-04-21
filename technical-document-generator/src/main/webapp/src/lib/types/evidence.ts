@@ -9,10 +9,34 @@ export function getResourceType(evidence: SchemaEvidence): ResourceType | 'unkno
   return key ?? 'unknown';
 }
 
-export function getResourceData(evidence: SchemaEvidence): NonNullable<SchemaResource[ResourceType]> | null {
-  const resource = evidence.resource;
-  if (!resource) return null;
-  const key = getResourceType(evidence);
-  if (key === 'unknown') return null;
-  return resource[key] ?? null;
+export function findResource<K extends ResourceType>(
+  evidences: SchemaEvidence[],
+  type: K
+): { evidence: SchemaEvidence; data: NonNullable<SchemaResource[K]> } | null {
+  const evidence = evidences.find((e) => getResourceType(e) === type);
+  if (!evidence) return null;
+  const data = (evidence.resource as SchemaResource)[type];
+  if (!data) return null;
+  return { evidence, data: data as NonNullable<SchemaResource[K]> };
+}
+
+export interface ManufacturerInfo {
+  name: string;
+  tradeName: string;
+  postalAddress: string;
+  generalEmail: string;
+  securityEmail: string;
+  website: string;
+  securityPortalUrl: string;
+}
+
+export interface Placeholders {
+  userInstructionsReference: string;
+  automaticUpdateMethod: string;
+  dataRemovalMethod: string;
+  disableUpdatesPath: string;
+  integrationDocUrl: string;
+  architectureDocumentReference: string;
+  hardwareLayoutReference: string;
+  updateInstructionsUrl: string;
 }

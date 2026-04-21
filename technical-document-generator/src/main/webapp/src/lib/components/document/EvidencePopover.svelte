@@ -1,12 +1,17 @@
 <script lang="ts">
-  import { getResourceData } from '$lib/types/evidence';
+  import type { SchemaResource } from '$lib/api/openapi/evidence';
   import { popover, closePopover } from './popoverStore.svelte';
   import { tick } from 'svelte';
 
   let popoverEl: HTMLDivElement | undefined = $state();
   let position = $state({ top: 0, left: 0 });
 
-  const resourceData = $derived(popover.evidence ? getResourceData(popover.evidence) : null);
+  const resourceData = $derived.by(() => {
+    const resource = popover.evidence?.resource;
+    if (!resource) return null;
+    const key = Object.keys(resource)[0] as keyof SchemaResource | undefined;
+    return key ? resource[key] ?? null : null;
+  });
 
   $effect(() => {
     if (popover.evidence && popover.anchor) {

@@ -1,15 +1,78 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import type { SchemaEvidence as Evidence } from '$lib/api/openapi/evidence';
   import PageHeader from '$lib/components/navigation/PageHeader.svelte';
   import TabNavigation from '$lib/components/navigation/TabNavigation.svelte';
   import DocumentBody from '$lib/components/document/DocumentBody.svelte';
   import EvidencePopover from '$lib/components/document/EvidencePopover.svelte';
-  import { emptyManufacturerInfo } from '$lib/utils/templateMapper';
+  import type { ManufacturerInfo, Placeholders } from '$lib/types/evidence';
 
   let { data }: { data: PageData } = $props();
 
-  let manufacturer = $state(emptyManufacturerInfo());
+  let manufacturer = $state<ManufacturerInfo>({
+    name: '',
+    tradeName: '',
+    postalAddress: '',
+    generalEmail: '',
+    securityEmail: '',
+    website: '',
+    securityPortalUrl: ''
+  });
+  let placeholders = $state<Placeholders>({
+    userInstructionsReference: '',
+    automaticUpdateMethod: '',
+    dataRemovalMethod: '',
+    disableUpdatesPath: '',
+    integrationDocUrl: '',
+    architectureDocumentReference: '',
+    hardwareLayoutReference: '',
+    updateInstructionsUrl: ''
+  });
   let showManufacturerForm = $state(false);
+
+  let selectedToeId = $state('');
+  let evidences = $state<Evidence[]>([]);
+  let loadingEvidences = $state(false);
+
+  $effect(() => {
+    const toeId = selectedToeId;
+    manufacturer = {
+      name: '',
+      tradeName: '',
+      postalAddress: '',
+      generalEmail: '',
+      securityEmail: '',
+      website: '',
+      securityPortalUrl: ''
+    };
+    placeholders = {
+      userInstructionsReference: '',
+      automaticUpdateMethod: '',
+      dataRemovalMethod: '',
+      disableUpdatesPath: '',
+      integrationDocUrl: '',
+      architectureDocumentReference: '',
+      hardwareLayoutReference: '',
+      updateInstructionsUrl: ''
+    };
+    if (!toeId) {
+      evidences = [];
+      return;
+    }
+    loadingEvidences = true;
+    fetch(`/api/evidences?targetOfEvaluationId=${encodeURIComponent(toeId)}`)
+      .then((r) => (r.ok ? r.json() : { evidences: [] }))
+      .then((d: { evidences: Evidence[] }) => {
+        evidences = d.evidences ?? [];
+      })
+      .catch((e) => {
+        console.error('Error loading evidences:', e);
+        evidences = [];
+      })
+      .finally(() => {
+        loadingEvidences = false;
+      });
+  });
 
   let docHtmlElement: HTMLDivElement | undefined = $state();
   let fieldCount = $state({ total: 0, filled: 0 });
@@ -38,6 +101,26 @@
 />
 
 <TabNavigation />
+
+<!-- Target of Evaluation selector -->
+<div class="mb-6 bg-white shadow-sm rounded-lg border border-gray-100 px-5 py-4 flex items-center gap-3">
+  <label for="toe-select" class="text-[13px] font-medium text-gray-600 whitespace-nowrap">Target of Evaluation</label>
+  <select
+    id="toe-select"
+    class="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent"
+    bind:value={selectedToeId}
+  >
+    <option value="">— Select a TOE —</option>
+    {#each data.targetsOfEvaluation as toe (toe.id)}
+      <option value={toe.id}>{toe.name}</option>
+    {/each}
+  </select>
+  {#if loadingEvidences}
+    <span class="text-xs text-gray-400">Loading…</span>
+  {:else if selectedToeId}
+    <span class="text-xs text-gray-400 tabular-nums">{evidences.length} evidence{evidences.length === 1 ? '' : 's'}</span>
+  {/if}
+</div>
 
 <!-- Progress bar -->
 <div class="mb-6 bg-white shadow-sm rounded-lg border border-gray-100 px-5 py-4">
@@ -114,26 +197,6 @@
           <span class="text-sm font-medium text-gray-700">Alternative reporting channel</span>
           <input type="url" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" placeholder="https://security.example.com" bind:value={manufacturer.securityPortalUrl} />
         </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-sm font-medium text-gray-700">Model</span>
-          <input type="text" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" bind:value={manufacturer.model} />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-sm font-medium text-gray-700">Update installation method</span>
-          <input type="text" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" bind:value={manufacturer.automaticUpdateMethod} />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-sm font-medium text-gray-700">Data removal method</span>
-          <input type="text" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" bind:value={manufacturer.dataRemovalMethod} />
-        </label>
-        <label class="flex flex-col gap-1.5">
-          <span class="text-sm font-medium text-gray-700">Disable auto-updates path</span>
-          <input type="text" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" bind:value={manufacturer.disableUpdatesPath} />
-        </label>
-        <label class="flex flex-col gap-1.5 sm:col-span-2">
-          <span class="text-sm font-medium text-gray-700">Integration documentation URL</span>
-          <input type="url" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent" bind:value={manufacturer.integrationDocUrl} />
-        </label>
       </form>
     </div>
   {/if}
@@ -141,7 +204,7 @@
 
 <!-- Document -->
 <div bind:this={docHtmlElement} class="bg-white shadow-sm rounded-lg border border-gray-100 px-10 py-8">
-  <DocumentBody evidences={data.evidences} {manufacturer} />
+  <DocumentBody {evidences} bind:manufacturer bind:placeholders />
 </div>
 
 <EvidencePopover />

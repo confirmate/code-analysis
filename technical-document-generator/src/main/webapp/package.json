@@ -3,7 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "generate:types": "mkdir -p src/lib/api/openapi && openapi-typescript ../../../../app/src/main/resources/openapi/evidence.yaml -o src/lib/api/openapi/evidence.ts --root-types",
+    "generate:types:evidence": "mkdir -p src/lib/api/openapi && openapi-typescript ../../../../app/src/main/resources/openapi/evidence.yaml -o src/lib/api/openapi/evidence.ts --root-types",
+    "generate:types:orchestrator": "mkdir -p src/lib/api/openapi && openapi-typescript ../../../../app/src/main/resources/openapi/orchestrator.yaml -o src/lib/api/openapi/orchestrator.ts --root-types",
+    "generate:types": "pnpm run generate:types:evidence && pnpm run generate:types:orchestrator",
     "predev": "pnpm run generate:types",
     "prebuild": "pnpm run generate:types",
     "build": "vite build",
