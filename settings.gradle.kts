@@ -17,3 +17,5 @@ include("app")
 include("queries")
 
 include("example-project")
+
+include("technical-document-generator")

@@ -22,6 +22,8 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import de.fraunhofer.aisec.codyze.AnalysisResult
 import io.clouditor.api.EvidenceStoreApi
 import io.clouditor.api.OrchestratorApi
+import io.clouditor.model.Evidence
+import io.clouditor.model.TargetOfEvaluation
 import io.ktor.client.*
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.*
@@ -100,6 +102,60 @@ class ClouditorClient {
 
         orchApi = OrchestratorApi(baseUrl, httpClientConfig = config, jsonBlock = jsonBlock)
         evidenceApi = EvidenceStoreApi(baseUrl, httpClientConfig = config, jsonBlock = jsonBlock)
+    }
+
+    suspend fun listTargetOfEvaluations(): List<TargetOfEvaluation> {
+        val toes = mutableListOf<TargetOfEvaluation>()
+        var pageToken: String? = null
+
+        do {
+            val response =
+                orchApi.orchestratorListTargetsOfEvaluation(
+                    pageSize = 100,
+                    pageToken = pageToken,
+                    orderBy = null,
+                    asc = null,
+                )
+
+            if (response.success) {
+                val body = response.body()
+                body.targetsOfEvaluation.let { toe -> toes.addAll(toe) }
+                pageToken = body.nextPageToken
+            } else {
+                log.error("Failed to list toes: ${response.response}")
+                break
+            }
+        } while (!pageToken.isNullOrBlank())
+
+        return toes
+    }
+
+    suspend fun listEvidences(targetOfEvaluationId: String? = null): List<Evidence> {
+        val evidences = mutableListOf<Evidence>()
+        var pageToken: String? = null
+
+        do {
+            val response =
+                evidenceApi.evidenceStoreListEvidences(
+                    filterTargetOfEvaluationId = targetOfEvaluationId,
+                    filterToolId = null,
+                    pageSize = 100,
+                    pageToken = pageToken,
+                    orderBy = null,
+                    asc = null,
+                )
+
+            if (response.success) {
+                val body = response.body()
+                body.evidences?.let { evidences.addAll(it) }
+                pageToken = body.nextPageToken
+            } else {
+                log.error("Failed to list evidences: ${response.response}")
+                break
+            }
+        } while (!pageToken.isNullOrBlank())
+
+        return evidences
     }
 
     suspend fun sendConfirmateResults(result: AnalysisResult) {

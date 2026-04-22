@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+@theme {
+  --font-sans: Inter, sans-serif;
+  --font-mono: 'Noto Sans Mono', monospace;
+}
