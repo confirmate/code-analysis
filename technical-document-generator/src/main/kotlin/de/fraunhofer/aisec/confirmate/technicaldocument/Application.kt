@@ -28,10 +28,12 @@ import io.ktor.server.engine.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 
-fun main() {
+fun main(args: Array<String>) {
+    val port = args.getOrNull(0)?.toIntOrNull() ?: 9090
+
     val client = ClouditorClient()
 
-    embeddedServer(CIO, host = "localhost", port = 9090) { configureWebapp(client) }
+    embeddedServer(CIO, host = "localhost", port = port) { configureWebapp(client) }
         .start(wait = true)
 }
 
