@@ -308,13 +308,19 @@ project {
                 }
             }
 
-            requirement {
-                name = "X.1.1.12"
-                description =
-                    "Products with digital elements shall be designed, developed and produced to reduce the impact of an incident using appropriate exploitation mitigation mechanisms and techniques;"
-
-                fulfilledBy { relevantDataFlowToBackup().withMetricId("BackupEnabled") }
-            }
+            // TEMP: skipped — relevantDataFlowToBackup() wedges in CPG's
+            // allExtended/dataFlow(Interprocedural) nested-runBlocking pattern
+            // (Extensions.kt:2049). See thread dump in logs/code-analysis.log
+            // taken 2026-06-16.
+            // requirement {
+            //     name = "X.1.1.12"
+            //     description =
+            //         "Products with digital elements shall be designed, developed and produced to
+            // reduce the impact of an incident using appropriate exploitation mitigation mechanisms
+            // and techniques;"
+            //
+            //     fulfilledBy { relevantDataFlowToBackup().withMetricId("BackupEnabled") }
+            // }
 
             requirement {
                 name = "X.1.1.13"
